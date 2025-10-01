@@ -1,9 +1,10 @@
 [package]
 name = "shared"
-version.workspace = true
-categories.workspace = true
-edition.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
+categories = ["embedded"]
+edition = "2024"
+rust-version = "1.88"
+authors = ["Michael Honaker <mchonaker@gmail.com>"]
 
 [dependencies]
-embedded-can  = {workspace = true}
+embedded-can = "0.4.1"

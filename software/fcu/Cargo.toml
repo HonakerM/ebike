@@ -1,10 +1,10 @@
 [package]
 name = "fcu"
-version.workspace = true
-categories.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-authors.workspace = true
+version = "0.1.0"
+categories = ["embedded"]
+edition = "2024"
+rust-version = "1.88"
+authors = ["Michael Honaker <mchonaker@gmail.com>"]
 supported-targets = [
     { triple = "xtensa-esp32-espidf" },
 ]
@@ -19,13 +19,21 @@ esp-idf-svc = "0.51"
 esp-idf-hal = "0.45"
 esp-idf-sys = "0.36.1"
 embedded-can = "0.4.1"
-anyhow      = {workspace = true}
+anyhow      = "1.0"
 embedded-hal-async = "1.0.0"
 embassy-time = "0.5.0"
 embassy-sync = "0.7.2"
 embassy-executor = { version = "0.9.1", features = ["arch-std"] }
+shared = {path ="../shared" }
 
 
 [build-dependencies]
 embuild = "0.33"
 uuid   = { version = "=1.9.1", features = ["v4"] }
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true    # Symbols are nice and they don't increase the size on Flash
+opt-level = "z"
