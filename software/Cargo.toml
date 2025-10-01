@@ -20,3 +20,10 @@ shared = { path = "shared" }
 # Shared dependencies for all projects
 anyhow = "1.0.98"
 embedded-can = "0.4.1"
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true    # Symbols are nice and they don't increase the size on Flash
+opt-level = "z"

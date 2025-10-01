@@ -1155,7 +1155,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "embassy-executor",
+ "embassy-sync 0.7.2",
+ "embassy-time",
  "embedded-can",
+ "embedded-hal-async",
  "embuild",
  "esp-idf-hal",
  "esp-idf-svc",

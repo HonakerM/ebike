@@ -5,17 +5,13 @@ categories.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
+supported-targets = [
+    { triple = "xtensa-esp32-espidf" },
+]
 
 [[bin]]
 name = "fcu"
 harness = false # do not use the built in cargo test harness -> resolve rust-analyzer errors
-
-[profile.release]
-opt-level = "s"
-
-[profile.dev]
-debug = true    # Symbols are nice and they don't increase the size on Flash
-opt-level = "z"
 
 [dependencies]
 log = "0.4"
@@ -23,8 +19,11 @@ esp-idf-svc = "0.51"
 esp-idf-hal = "0.45"
 esp-idf-sys = "0.36.1"
 embedded-can = "0.4.1"
-embassy-executor = "0.9.1"
 anyhow      = {workspace = true}
+embedded-hal-async = "1.0.0"
+embassy-time = "0.5.0"
+embassy-sync = "0.7.2"
+embassy-executor = { version = "0.9.1", features = ["arch-std"] }
 
 
 [build-dependencies]
