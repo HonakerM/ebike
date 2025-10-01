@@ -1,0 +1,31 @@
+[package]
+name = "fcu"
+version = "0.1.0"
+authors = ["Michael Honaker <mchonaker@gmail.com>"]
+edition = "2021"
+resolver = "2"
+rust-version = "1.77"
+
+[[bin]]
+name = "fcu"
+harness = false # do not use the built in cargo test harness -> resolve rust-analyzer errors
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true    # Symbols are nice and they don't increase the size on Flash
+opt-level = "z"
+
+[dependencies]
+log = "0.4"
+esp-idf-svc = "0.51"
+esp-idf-hal = "0.45"
+anyhow      = "=1.0.95"
+esp-idf-sys = "0.36.1"
+embedded-can = "0.4.1"
+
+
+[build-dependencies]
+embuild = "0.33"
+uuid   = { version = "=1.9.1", features = ["v4"] }
