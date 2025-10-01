@@ -1,0 +1,9 @@
+[package]
+name = "shared"
+version.workspace = true
+categories.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+embedded-can  = {workspace = true}

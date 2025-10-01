@@ -1,10 +1,10 @@
 [package]
 name = "fcu"
-version = "0.1.0"
-authors = ["Michael Honaker <mchonaker@gmail.com>"]
-edition = "2021"
-resolver = "2"
-rust-version = "1.77"
+version.workspace = true
+categories.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
 
 [[bin]]
 name = "fcu"
@@ -21,9 +21,10 @@ opt-level = "z"
 log = "0.4"
 esp-idf-svc = "0.51"
 esp-idf-hal = "0.45"
-anyhow      = "=1.0.95"
 esp-idf-sys = "0.36.1"
 embedded-can = "0.4.1"
+embassy-executor = "0.9.1"
+anyhow      = {workspace = true}
 
 
 [build-dependencies]

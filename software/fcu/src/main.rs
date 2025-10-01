@@ -1,7 +1,11 @@
 // filepath: /esp32-led-control/esp32-led-control/src/main.rs
-use esp_idf_hal::gpio::{Gpio32, Gpio33, Output, Input, PinDriver};
-use esp_idf_hal::peripheral::Peripheral;
+use embedded_can::Frame;
+use embedded_can::StandardId;
+use embedded_can::nb::Can;
 use esp_idf_hal::can;
+use esp_idf_hal::gpio::{Gpio32, Gpio33, Input, Output, PinDriver};
+use esp_idf_hal::peripheral::Peripheral;
+use esp_idf_hal::timer::Timer;
 use esp_idf_svc::hal::prelude::*;
 use esp_idf_svc::log::EspLogger;
 use esp_idf_svc::sys::link_patches;
@@ -9,11 +13,6 @@ use esp_idf_sys as _;
 use log::info;
 use std::thread;
 use std::time::Duration;
-use esp_idf_hal::timer::Timer;
-use embedded_can::nb::Can;
-use embedded_can::Frame;
-use embedded_can::StandardId;
-
 
 enum LED_STATE {
     ON,
@@ -23,15 +22,15 @@ enum LED_STATE {
 impl LED_STATE {
     fn export(&self) -> [u8; 8] {
         match self {
-            LED_STATE::ON => [1,0,0,0,0,0,0,0],
-            LED_STATE::OFF => [0,0,0,0,0,0,0,0],
+            LED_STATE::ON => [1, 0, 0, 0, 0, 0, 0, 0],
+            LED_STATE::OFF => [0, 0, 0, 0, 0, 0, 0, 0],
         }
     }
 
     fn from_data(data: &[u8; 8]) -> Option<LED_STATE> {
         match data {
-            [1,0,0,0,0,0,0,0] => Some(LED_STATE::ON),
-            [0,0,0,0,0,0,0,0] => Some(LED_STATE::OFF),
+            [1, 0, 0, 0, 0, 0, 0, 0] => Some(LED_STATE::ON),
+            [0, 0, 0, 0, 0, 0, 0, 0] => Some(LED_STATE::OFF),
             _ => None,
         }
     }
@@ -62,11 +61,9 @@ fn main() {
     let mut led_state = false;
     let mut previous_state = false;
 
-
     let LED_ID = StandardId::new(0x01).unwrap();
     let on_frame = &Frame::new(LED_ID, &LED_STATE::ON.export()).unwrap();
     let off_frame = &Frame::new(LED_ID, &LED_STATE::OFF.export()).unwrap();
-
 
     info!("Starting main loop");
     loop {
@@ -77,12 +74,13 @@ fn main() {
                 if led_state {
                     led.set_high().expect("Failed to set LED high");
                     info!("LED ON");
-                    can.transmit(on_frame, 100).expect("Failed to send CAN frame");
-
+                    can.transmit(on_frame, 100)
+                        .expect("Failed to send CAN frame");
                 } else {
                     led.set_low().expect("Failed to set LED low");
                     info!("LED OFF");
-                    can.transmit(off_frame, 100).expect("Failed to send CAN frame");
+                    can.transmit(off_frame, 100)
+                        .expect("Failed to send CAN frame");
                 }
                 previous_state = true;
             }
@@ -99,12 +97,12 @@ fn main() {
                             led.set_high().expect("Failed to set LED high");
                             info!("LED ON (from CAN)");
                             led_state = true;
-                        },
+                        }
                         LED_STATE::OFF => {
                             led.set_low().expect("Failed to set LED low");
                             info!("LED OFF (from CAN)");
                             led_state = false;
-                        },
+                        }
                     }
                 }
             }
