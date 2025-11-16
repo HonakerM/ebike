@@ -8,3 +8,4 @@ authors = ["Michael Honaker <mchonaker@gmail.com>"]
 
 [dependencies]
 embedded-can = "0.4.1"
+pid-lite = { version = "1.2.0", default-features = false }
