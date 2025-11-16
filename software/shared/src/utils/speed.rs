@@ -1,7 +1,5 @@
 use std::ops::{Add, Sub};
 
-
-
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
 pub struct WheelSpeed {
     rpm: u16,
@@ -15,19 +13,19 @@ impl From<u16> for WheelSpeed {
 
 impl Into<u16> for WheelSpeed {
     fn into(self) -> u16 {
-        return self.rpm
+        return self.rpm;
     }
 }
 
 impl From<f32> for WheelSpeed {
     fn from(value: f32) -> Self {
-        Self { rpm: value as u16}
+        Self { rpm: value as u16 }
     }
 }
 
 impl Into<f32> for WheelSpeed {
     fn into(self) -> f32 {
-        return self.rpm as f32
+        return self.rpm as f32;
     }
 }
 
@@ -39,10 +37,7 @@ impl Ord for WheelSpeed {
 
 impl WheelSpeed {
     pub fn to_packets(&self) -> [u8; 2] {
-        [
-            (self.rpm & 0xFF) as u8,
-            (self.rpm >> 8) as u8,
-        ]
+        [(self.rpm & 0xFF) as u8, (self.rpm >> 8) as u8]
     }
     pub fn from_packets(data: &[u8; 2]) -> Self {
         Self {
@@ -50,7 +45,6 @@ impl WheelSpeed {
         }
     }
 }
-
 
 pub struct GroundSpeed {
     pub mph: f32,

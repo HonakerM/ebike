@@ -1,5 +1,5 @@
-#[path ="./percentage.rs"]
+#[path = "./percentage.rs"]
 pub mod percentage;
 
-#[path ="./speed.rs"]
+#[path = "./speed.rs"]
 pub mod speed;

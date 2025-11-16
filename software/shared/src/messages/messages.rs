@@ -2,13 +2,15 @@ use core::time;
 
 use embedded_can::StandardId;
 
-use crate::{messages::ids::{FCU_MESG_ID, MCU_MESG_ID, RCU_MESG_ID}, utils::{percentage::Percentage, speed::WheelSpeed}};
+use crate::{
+    messages::ids::{FCU_MESG_ID, MCU_MESG_ID, RCU_MESG_ID},
+    utils::{percentage::Percentage, speed::WheelSpeed},
+};
 
-
-pub enum Message{
+pub enum Message {
     McuMessage(McuMessage),
     FcuMessage(FcuMessage),
-    RcuMessage(RcuMessage), 
+    RcuMessage(RcuMessage),
 }
 
 impl Message {
@@ -20,12 +22,12 @@ impl Message {
         }
     }
 
-    fn from_bytes(id: StandardId, data: &[u8], ) -> Option<Self> {
+    fn from_bytes(id: StandardId, data: &[u8]) -> Option<Self> {
         if id == MCU_MESG_ID {
             Some(Message::McuMessage(McuMessage::from_bytes(data)))
         } else if id == FCU_MESG_ID {
             Some(Message::FcuMessage(FcuMessage::from_bytes(data)))
-        } else if  id == RCU_MESG_ID {
+        } else if id == RCU_MESG_ID {
             Some(Message::RcuMessage(RcuMessage::from_bytes(data)))
         } else {
             None
@@ -57,14 +59,14 @@ pub struct FcuMessage {
     pub tire_rpm: WheelSpeed,
 }
 
-impl  FcuMessage {
+impl FcuMessage {
     fn to_bytes(&self) -> [u8; 8] {
         let tire_rpm = self.tire_rpm.to_packets();
         [
             self.throttle_req.into(),
             self.brake_req.into(),
             tire_rpm[0],
-                tire_rpm[1],
+            tire_rpm[1],
             0,
             0,
             0,
@@ -88,21 +90,12 @@ pub struct RcuMessage {
 impl RcuMessage {
     fn to_bytes(&self) -> [u8; 8] {
         let packets = self.tire_rpm.to_packets();
-        [   
-            packets[0],
-            packets[1],
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ]
+        [packets[0], packets[1], 0, 0, 0, 0, 0, 0]
     }
 
     fn from_bytes(data: &[u8]) -> Self {
         Self {
-            tire_rpm:  WheelSpeed::from_packets(&[data[0], data[1]]),
+            tire_rpm: WheelSpeed::from_packets(&[data[0], data[1]]),
         }
     }
 }
