@@ -55,14 +55,13 @@ impl Message {
     }
 }
 
-
 impl From<String> for Message {
     fn from(s: String) -> Self {
         // Deserialize the string into a Message
         // Format: "<ID>:<DATA>"
         let parts: Vec<&str> = s.splitn(2, ':').collect();
         if parts.len() != 2 {
-            panic!("Invalid Message string format");
+            panic!("Invalid Message string format: '{s}'");
         }
 
         let id = parts[0].parse::<u16>().expect("Invalid ID format");
@@ -98,7 +97,6 @@ impl Into<String> for Message {
         format!("{}:{}", id, hex_data)
     }
 }
-
 
 // Helper function to convert a byte slice to a hexadecimal string
 fn bytes_to_hex(bytes: &[u8]) -> String {

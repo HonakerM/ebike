@@ -1,13 +1,13 @@
+use base64;
+use embedded_can::StandardId;
+use shared::messages::messages::common::Message;
+use shared::messages::messages::control_req::ControlReqMessage;
+use shared::utils::percentage::Percentage;
+use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
-use base64;
-use shared::messages::messages::control_req::ControlReqMessage;
-use shared::utils::percentage::Percentage;
-use std::io::{BufRead, BufReader, Write};
-use shared::messages::messages::common::Message;
-use embedded_can::StandardId;
 
 fn forward_debug(output: Arc<Mutex<BufReader<std::process::ChildStdout>>>) {
     loop {
@@ -28,7 +28,10 @@ fn forward_debug(output: Arc<Mutex<BufReader<std::process::ChildStdout>>>) {
     }
 }
 
-fn capture_can(output: Arc<Mutex<BufReader<std::process::ChildStderr>>>, can_messages: Arc<Mutex<Vec<Message>>>) {
+fn capture_can(
+    output: Arc<Mutex<BufReader<std::process::ChildStderr>>>,
+    can_messages: Arc<Mutex<Vec<Message>>>,
+) {
     loop {
         let line = {
             let mut reader = output.lock().unwrap();
@@ -42,7 +45,9 @@ fn capture_can(output: Arc<Mutex<BufReader<std::process::ChildStderr>>>, can_mes
 
         if let Some(val) = line {
             let val = val.trim().to_string(); // Remove any trailing newlines
-            println!("{}", val);
+            if val.is_empty() {
+                continue;
+            }
             can_messages.lock().unwrap().push(val.into());
         }
     }
@@ -71,9 +76,18 @@ fn main() {
 
     let stdin = process.stdin.as_mut().unwrap();
     let messages = vec![
-        Message::ControlReqMessage(ControlReqMessage{ throttle_req: Percentage::from_fractional(0.5), brake_req: Percentage::zero()}),
-        Message::ControlReqMessage(ControlReqMessage{ throttle_req: Percentage::full(), brake_req: Percentage::zero()}),
-        Message::ControlReqMessage(ControlReqMessage{ throttle_req: Percentage::zero(), brake_req: Percentage::full()})
+        Message::ControlReqMessage(ControlReqMessage {
+            throttle_req: Percentage::from_fractional(0.5),
+            brake_req: Percentage::zero(),
+        }),
+        Message::ControlReqMessage(ControlReqMessage {
+            throttle_req: Percentage::full(),
+            brake_req: Percentage::zero(),
+        }),
+        Message::ControlReqMessage(ControlReqMessage {
+            throttle_req: Percentage::zero(),
+            brake_req: Percentage::full(),
+        }),
     ];
 
     for msg in messages {

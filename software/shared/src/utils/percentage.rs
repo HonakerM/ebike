@@ -2,6 +2,7 @@ use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Percentage {
+    // stored as raw value percetnage e.g 100.0% is 100.0
     raw_val: f32,
 }
 
@@ -15,7 +16,7 @@ impl From<u8> for Percentage {
 
 impl Into<u8> for Percentage {
     fn into(self) -> u8 {
-        (self.raw_val * (std::u8::MAX as f32)) as u8
+        ((self.raw_val) * (std::u8::MAX as f32)) as u8
     }
 }
 
@@ -87,12 +88,10 @@ impl Div<Percentage> for Percentage {
 
 impl Percentage {
     pub const fn from_fractional(value: f32) -> Self {
-        Self {
-            raw_val: value * 100.0,
-        }
+        Self { raw_val: value }
     }
     pub fn full() -> Self {
-        return Percentage { raw_val: 100.0 };
+        return Percentage { raw_val: 1.0 };
     }
     pub fn zero() -> Self {
         return Percentage { raw_val: 0.0 };
@@ -100,8 +99,8 @@ impl Percentage {
     pub fn clamp(mut self) {
         if self.raw_val < 0.0 {
             self.raw_val = 0.0;
-        } else if self.raw_val > 100.0 {
-            self.raw_val = 100.0;
+        } else if self.raw_val > 1.0 {
+            self.raw_val = 1.0;
         }
     }
 }
