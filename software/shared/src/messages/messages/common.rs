@@ -54,3 +54,75 @@ impl Message {
         }
     }
 }
+
+
+impl From<String> for Message {
+    fn from(s: String) -> Self {
+        // Deserialize the string into a Message
+        // Format: "<ID>:<DATA>"
+        let parts: Vec<&str> = s.splitn(2, ':').collect();
+        if parts.len() != 2 {
+            panic!("Invalid Message string format");
+        }
+
+        let id = parts[0].parse::<u16>().expect("Invalid ID format");
+        let data = hex_to_bytes::<8>(parts[1]).expect("Invalid hex data");
+
+        if id == ECU_MESG_ID.as_raw() {
+            Message::EcuMessage(EcuMessage::from_bytes(&data))
+        } else if id == CTL_MESG_ID.as_raw() {
+            Message::ControlReqMessage(ControlReqMessage::from_bytes(&data))
+        } else if id == TRS_MESG_ID.as_raw() {
+            Message::TireStatusMessage(TireStatus::from_bytes(&data))
+        } else if id == UPD_MESG_ID.as_raw() {
+            Message::UpdateMessage(Update::from_bytes(&data))
+        } else {
+            panic!("Unknown Message ID");
+        }
+    }
+}
+
+impl Into<String> for Message {
+    fn into(self) -> String {
+        // Serialize the Message into a string
+        // Format: "<ID>:<DATA>"
+        let id = self.to_id().as_raw();
+        let data = match self {
+            Message::EcuMessage(msg) => msg.to_bytes(),
+            Message::TireStatusMessage(msg) => msg.to_bytes(),
+            Message::ControlReqMessage(msg) => msg.to_bytes(),
+            Message::UpdateMessage(msg) => msg.to_bytes(),
+        };
+
+        let hex_data = bytes_to_hex(&data);
+        format!("{}:{}", id, hex_data)
+    }
+}
+
+
+// Helper function to convert a byte slice to a hexadecimal string
+fn bytes_to_hex(bytes: &[u8]) -> String {
+    let mut hex = String::new();
+    for byte in bytes {
+        hex.push_str(&format!("{:02x}", byte));
+    }
+    hex
+}
+
+// Helper function to convert a hexadecimal string back to a byte vector
+fn hex_to_bytes<const N: usize>(hex: &str) -> Result<[u8; N], String> {
+    if hex.len() < N * 2 {
+        return Err(format!(
+            "Hex string length mismatch: expected {}, got {}",
+            N * 2,
+            hex.len()
+        ));
+    }
+
+    let mut array = [0u8; N];
+    for i in 0..N {
+        array[i] = u8::from_str_radix(&hex[i * 2..i * 2 + 2], 16)
+            .map_err(|_| "Invalid hex character".to_string())?;
+    }
+    Ok(array)
+}
