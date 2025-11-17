@@ -1,8 +1,8 @@
-use base64;
-use embedded_can::StandardId;
 use shared::messages::messages::common::Message;
 use shared::messages::messages::control_req::ControlReqMessage;
 use shared::utils::percentage::Percentage;
+use std::fs::File;
+use std::io::BufWriter;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
@@ -13,7 +13,19 @@ use std::time::Duration;
 pub mod local;
 
 fn main() {
-    let (config, snd) = local::setup();
+    let (config, snd, rcv) = local::setup();
+
+    // Start a thread to save messages to a local text file
+    thread::spawn(move || {
+        let log_file = File::create("./logs.txt").unwrap();
+        let mut writer = BufWriter::new(log_file);
+
+        loop {
+            if let Ok(msg) = rcv.recv() {
+                writeln!(writer, "{:?}", msg).unwrap();
+            }
+        }
+    });
 
     thread::spawn(move || {
         tokio::runtime::Builder::new_current_thread()
@@ -22,6 +34,7 @@ fn main() {
             .unwrap()
             .block_on(local::run(config))
     });
+
     let messages = vec![
         Message::ControlReqMessage(ControlReqMessage {
             throttle_req: Percentage::from_fractional(0.5),
@@ -39,16 +52,9 @@ fn main() {
 
     for msg in messages {
         println!("Sending: {:?}", msg);
-        snd.send(msg);
+        if let Err(e) = snd.send(msg) {
+            eprintln!("Failed to send message: {:?}", e);
+        }
         thread::sleep(Duration::from_secs(5));
     }
-
-    // let log_file = std::fs::File::create("./logs.txt").unwrap();
-    // let mut writer = std::io::BufWriter::new(log_file);
-    // for msg in can_messages.lock().unwrap().iter() {
-    //     writeln!(writer, "{:?}", msg).unwrap();
-    // }
-
-    // process.kill().unwrap();
-    // process.wait().unwrap();
 }

@@ -32,6 +32,22 @@ async fn local_sleep(dur: shared::utils::time::Duration) {
 static LOCAL_CAN_SEND: OnceLock<Mutex<std::sync::mpsc::Sender<Message>>> = OnceLock::new();
 static LOCAL_CAN_RCV: OnceLock<Mutex<std::sync::mpsc::Receiver<Message>>> = OnceLock::new();
 
+#[derive(Debug)]
+pub struct Messagestats {
+    pub msg: Message,
+    pub time: Timestamp,
+}
+impl Messagestats {
+    pub fn new(msg: Message) -> Self {
+        Messagestats {
+            msg,
+            time: get_timestamp(),
+        }
+    }
+}
+
+static DEBUG_CAN_SEND: OnceLock<Mutex<std::sync::mpsc::Sender<Messagestats>>> = OnceLock::new();
+
 pub async fn get_next_message() -> Message {
     loop {
         if let Some(recv) = LOCAL_CAN_RCV.get() {
@@ -39,6 +55,10 @@ pub async fn get_next_message() -> Message {
                 let lock = recv.lock().await;
                 let msg = lock.recv_timeout(Duration::from_millis(10));
                 if let Ok(msg) = msg {
+                    {
+                        let mut lock = DEBUG_CAN_SEND.get().unwrap().lock().await;
+                        lock.send(Messagestats::new(msg));
+                    }
                     return msg;
                 }
                 tokio::time::sleep(Duration::from_millis(100)).await;
@@ -79,12 +99,19 @@ impl From<McuController> for LocalMutex {
     }
 }
 
-pub fn setup() -> (Config, std::sync::mpsc::Sender<Message>) {
+pub fn setup() -> (
+    Config,
+    std::sync::mpsc::Sender<Message>,
+    std::sync::mpsc::Receiver<Messagestats>,
+) {
     let (can_send, can_recv) = std::sync::mpsc::channel();
     LOCAL_CAN_SEND.set(Mutex::new(can_send.clone()));
     LOCAL_CAN_RCV.set(Mutex::new(can_recv));
 
-    (Config::default(), can_send)
+    let (debug_send, can_recv) = std::sync::mpsc::channel();
+    DEBUG_CAN_SEND.set(Mutex::new(debug_send));
+
+    (Config::default(), can_send, can_recv)
 }
 
 pub async fn run(config: Config) {
@@ -107,6 +134,6 @@ pub async fn run(config: Config) {
 
 #[tokio::main]
 async fn main() {
-    let (config, _) = setup();
+    let (config, _, _) = setup();
     run(config).await;
 }
