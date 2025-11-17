@@ -47,16 +47,16 @@ impl Default for McuState {
     }
 }
 
-pub struct McuController {
+pub struct McuController<MF, EF, SF> where MF: core::future::Future<Output=Message> , EF: core::future::Future<Output=()>, SF:core::future::Future<Output=()>{
     pub config: Config,
     state: McuState,
-    interface: HalInterface,
+    interface: HalInterface<MF, EF, SF>,
 
     engine_subsystem: EngineSubsystem,
 }
 
-impl Controller for McuController {
-    fn new(config: Config, interface: HalInterface) -> Self {
+impl<MF, EF, SF> Controller<MF, EF, SF> for McuController<MF, EF, SF> where MF: core::future::Future<Output=Message>, EF: core::future::Future<Output=()>,SF:core::future::Future<Output=()> {
+    fn new(config: Config, interface: HalInterface<MF, EF, SF>) -> Self {
         let engine_subsystem = EngineSubsystem::new(config.engine);
         McuController {
             config,
@@ -67,7 +67,7 @@ impl Controller for McuController {
     }
 }
 
-impl McuController {
+impl<MF, EF, SF> McuController<MF, EF, SF> where MF: core::future::Future<Output=Message>, EF: core::future::Future<Output=()>,SF:core::future::Future<Output=()> {
     pub fn process_message(&mut self, msg: Message) {
         match msg {
             Message::TireStatusMessage(status) => match status.wheel {
