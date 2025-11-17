@@ -1,7 +1,7 @@
 use crate::{
     config::config::Config,
     controllers::shared::{Controller, HalInterface},
-    messages::messages::Message,
+    messages::messages::{ecu::EcuMessage, Message},
     subsystems::{
         mcu::engine::{EngineRequest, EngineSubsystem},
         shared::Subsystem,
@@ -12,6 +12,7 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub struct McuConfig {
     pub engine_poll: Duration,
+    pub ecu_poll: Duration,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -94,5 +95,12 @@ where
         };
         let resp = self.engine_subsystem.run(req);
         self.state.throttle = resp.throttle_req;
+    }
+
+    pub async fn broadcast_ecu(&self) {
+        let ecu_message = Message::EcuMessage(EcuMessage {
+            throttle: self.state.throttle,
+        });
+        (self.interface.broadcast)(ecu_message).await;
     }
 }
