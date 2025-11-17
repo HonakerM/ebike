@@ -6,10 +6,13 @@ use embassy_executor::Spawner;
 use embassy_stm32::bind_interrupts;
 use embassy_stm32::can::filter::Mask32;
 use embassy_stm32::can::{
-    Can, Fifo, Frame, Rx0InterruptHandler, Rx1InterruptHandler, SceInterruptHandler, StandardId, TxInterruptHandler,
+    Can, Fifo, Frame, Rx0InterruptHandler, Rx1InterruptHandler, SceInterruptHandler, StandardId,
+    TxInterruptHandler,
 };
 use embassy_stm32::gpio::{Input, Pull};
 use embassy_stm32::peripherals::CAN1;
+use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
+use embassy_sync::mutex::Mutex;
 use embassy_time::Instant;
 use {defmt_rtt as _, panic_probe as _};
 
@@ -19,6 +22,8 @@ bind_interrupts!(struct Irqs {
     CAN1_SCE => SceInterruptHandler<CAN1>;
     CAN1_TX => TxInterruptHandler<CAN1>;
 });
+
+static CAN: Mutex<ThreadModeRawMutex, Option<Can>> = Mutex::new(None);
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
@@ -35,7 +40,8 @@ async fn main(_spawner: Spawner) {
 
     let mut can = Can::new(p.CAN1, p.PA11, p.PA12, Irqs);
 
-    can.modify_filters().enable_bank(0, Fifo::Fifo0, Mask32::accept_all());
+    can.modify_filters()
+        .enable_bank(0, Fifo::Fifo0, Mask32::accept_all());
 
     can.modify_config()
         .set_loopback(true) // Receive own frames
@@ -44,13 +50,24 @@ async fn main(_spawner: Spawner) {
 
     can.enable().await;
 
+    *CAN.lock().await = Some(can);
+
     let mut i: u8 = 0;
     loop {
         let tx_frame = Frame::new_data(unwrap!(StandardId::new(i as _)), &[i]).unwrap();
         let tx_ts = Instant::now();
-        can.write(&tx_frame).await;
 
-        let envelope = can.read().await.unwrap();
+        // send the CAN Message
+        {
+            let mut can_lock = CAN.lock().await;
+            can_lock.as_mut().unwrap().write(&tx_frame).await;
+        }
+
+        // Wait for a new one
+        let envelope = {
+            let mut can_lock = CAN.lock().await;
+            can_lock.as_mut().unwrap().read().await.unwrap()
+        };
 
         // We can measure loopback latency by using receive timestamp in the `Envelope`.
         // Our frame is ~55 bits long (exlcuding bit stuffing), so at 1mbps loopback delay is at least 55 us.
