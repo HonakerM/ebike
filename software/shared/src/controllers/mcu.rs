@@ -18,8 +18,8 @@ pub struct McuConfig {
 impl Default for McuConfig {
     fn default() -> Self {
         McuConfig {
-            engine_poll: Duration::from_millis(10),
-            ecu_poll: Duration::from_millis(20),
+            engine_poll: Duration::from_millis(100),
+            ecu_poll: Duration::from_millis(500),
         }
     }
 }

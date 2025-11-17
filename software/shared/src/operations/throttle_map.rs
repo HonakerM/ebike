@@ -2,17 +2,17 @@ use crate::utils::percentage::Percentage;
 
 // aggressive throttle application first
 fn level_0(req: Percentage) -> Percentage {
-    ((Into::<f32>::into(req)).powf(0.5) * 10.0).into()
+    ((Into::<f32>::into(req)).powf(0.5)).into()
 }
 
-// Linear curve over 1secs to full speed
+// Direct 1 to 1 throttle mapping
 fn level_1(req: Percentage) -> Percentage {
     req
 }
 
 // soft throttle application
 fn level_2(req: Percentage) -> Percentage {
-    ((Into::<f32>::into(req)).powf(2.0) * 0.01).into()
+    ((Into::<f32>::into(req)).powf(2.0)).into()
 }
 
 #[derive(Debug, Clone, Copy)]

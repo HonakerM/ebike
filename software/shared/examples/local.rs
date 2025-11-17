@@ -29,7 +29,7 @@ impl LocalMcuController {
                 let msg = lock.broadcast_ecu();
                 (lock.config.mcu.ecu_poll, msg)
             };
-            println!("{:?}", msg);
+            eprintln!("{:?}", msg);
             tokio::time::sleep(Duration::from_millis(sleep_time.as_millis())).await;
         }
     }
@@ -67,12 +67,11 @@ impl LocalMcuController {
                         .unwrap();
                     Message::from_bytes(id, raw_data.as_ref()).unwrap()
                 };
-
                 {
                     let mut lock = self.controller.lock().await;
                     lock.process_message(msg);
                 }
-                println!("{:?}", msg);
+                eprintln!("{:?}", msg);
             }
             tokio::time::sleep(Duration::from_millis(100)).await;
         }
