@@ -17,6 +17,32 @@ where
     pub broadcast_can_message: fn(Message) -> EF,
     pub sleep: fn(Duration) -> SF,
 }
+
+
+pub trait HalInterfaceType {
+    // async fn get_can_message() -> Message
+    type GetCanMessageFuture<'a>: Future<Output = Message> + 'a
+    where
+        Self: 'a;
+
+    // async fn broadcast_can_message(msg)
+    type BroadcastFuture<'a>: Future<Output = ()> + 'a
+    where
+        Self: 'a;
+
+    // async fn sleep()
+    type SleepFuture<'a>: Future<Output = ()> + 'a
+    where
+        Self: 'a;
+
+    /// sync function is fine
+    fn get_timestamp(&self) -> Timestamp;
+
+    /// async functions expressed using GATs
+    fn get_can_message(&self) -> Self::GetCanMessageFuture<'_>;
+    fn broadcast_can_message(&self, msg: Message) -> Self::BroadcastFuture<'_>;
+    fn sleep(&self, duration: Duration) -> Self::SleepFuture<'_>;
+}
 pub trait ControllerRunner<MF, EF, SF>
 where
     MF: core::future::Future<Output = Message>,

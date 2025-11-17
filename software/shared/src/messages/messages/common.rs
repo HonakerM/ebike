@@ -45,7 +45,7 @@ impl Message {
         }
     }
 
-    fn to_id(&self) -> StandardId {
+    pub fn to_id(&self) -> StandardId {
         match self {
             Message::EcuMessage(_) => ECU_MESG_ID,
             Message::TireStatusMessage(_) => TRS_MESG_ID,
