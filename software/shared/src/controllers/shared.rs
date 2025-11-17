@@ -28,7 +28,7 @@ where
 
 pub trait Lockable {
     type Target: ?Sized;
-    type Guard<'a>: std::ops::DerefMut<Target = Self::Target> + 'a
+    type Guard<'a>: core::ops::DerefMut<Target = Self::Target> + 'a
     where
         Self: 'a;
 

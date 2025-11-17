@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use core::ops::{Add, Div, Mul, Sub};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Percentage {
@@ -9,14 +9,14 @@ pub struct Percentage {
 impl From<u8> for Percentage {
     fn from(value: u8) -> Self {
         Self {
-            raw_val: (value as f32 / std::u8::MAX as f32),
+            raw_val: (value as f32 / core::u8::MAX as f32),
         }
     }
 }
 
 impl Into<u8> for Percentage {
     fn into(self) -> u8 {
-        ((self.raw_val) * (std::u8::MAX as f32)) as u8
+        ((self.raw_val) * (core::u8::MAX as f32)) as u8
     }
 }
 

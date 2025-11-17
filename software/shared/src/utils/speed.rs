@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub};
+use core::ops::{Add, Div, Mul, Sub};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
 pub struct WheelSpeed {
@@ -30,7 +30,7 @@ impl Into<f32> for WheelSpeed {
 }
 
 impl Ord for WheelSpeed {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
         self.rpm.cmp(&other.rpm)
     }
 }
@@ -55,7 +55,7 @@ impl GroundSpeed {
         // Convert wheel diameter from inches to miles
         let wheel_diameter_miles = wheel_diameter_inch / 63360.0; // 1 mile = 63360 inches
         // Calculate circumference in miles
-        let circumference_miles = std::f32::consts::PI * wheel_diameter_miles;
+        let circumference_miles = core::f32::consts::PI * wheel_diameter_miles;
         // Convert rpm to rph (revolutions per hour)
         let rph = (wheel_speed.rpm as f32) * 60.0;
         // Calculate ground speed in mph

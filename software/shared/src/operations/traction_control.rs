@@ -1,26 +1,10 @@
-use std::time::Duration;
-
 use pid_lite::Controller;
 
-use crate::utils::{percentage::Percentage, speed::WheelSpeed, time::Timestamp};
-
-// Linear curve over 5secs to full speed
-fn level_0(msec: u32) -> Percentage {
-    if msec > 5000 {
-        Percentage::full()
-    } else {
-        Percentage::from(0.02 * msec as f32)
-    }
-}
-
-// Linear curve over 1secs to full speed
-fn level_1(msec: u32) -> Percentage {
-    if msec > 1000 {
-        Percentage::full()
-    } else {
-        Percentage::from(0.1 * msec as f32)
-    }
-}
+use crate::utils::{
+    percentage::Percentage,
+    speed::WheelSpeed,
+    time::{Duration, Timestamp},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum TractionControlMode {
@@ -114,13 +98,14 @@ impl TractionControl {
         curr_req: Percentage,
     ) -> Percentage {
         let elapsed_time = if let Some(prev_time) = self.prev_timestamp {
-            Duration::from_micros((curr_time - prev_time).as_micros())
+            Duration::from_millis((curr_time - prev_time).as_micros() / 100)
         } else {
-            Duration::from_micros(0)
+            Duration::from_millis(0)
         };
-        let adjustment = self
-            .controller
-            .update_elapsed(current_slip.into(), elapsed_time);
+        let adjustment = self.controller.update_elapsed(
+            current_slip.into(),
+            core::time::Duration::from_millis(elapsed_time.as_millis()),
+        );
 
         if adjustment <= 0.0 {
             curr_req

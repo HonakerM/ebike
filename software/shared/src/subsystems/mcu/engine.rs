@@ -54,7 +54,7 @@ impl Subsystem<EngineConfig, EngineRequest, EngineResponse> for EngineSubsystem 
     }
 
     fn update(&mut self, config: EngineConfig) {
-        println!("Engine Subsystem Config: {:?}", config);
+        // println!("Engine Subsystem Config: {:?}", config);
 
         self.throttle_map.update_mode(config.throttle_map_mode);
         self.traction_control
@@ -65,12 +65,12 @@ impl Subsystem<EngineConfig, EngineRequest, EngineResponse> for EngineSubsystem 
     }
 
     fn reset(&mut self) {
-        println!("Engine Subsystem Reset");
+        // println!("Engine Subsystem Reset");
         self.traction_control.reset();
     }
 
     fn run(&mut self, req: EngineRequest) -> EngineResponse {
-        println!("Engine Subsystem Response: {:?}", req);
+        // println!("Engine Subsystem Response: {:?}", req);
         // reset subsystem back to default if no throttle request (it means we've finished this acceleration cycle)
         if req.throttle_req == Percentage::zero() {
             self.reset();
@@ -97,10 +97,10 @@ impl Subsystem<EngineConfig, EngineRequest, EngineResponse> for EngineSubsystem 
             }
         }
 
-        println!(
-            "Engine Subsystem Response: Desired Throttle: {:?}",
-            desired_throttle
-        );
+        // println!(
+        //     "Engine Subsystem Response: Desired Throttle: {:?}",
+        //     desired_throttle
+        // );
 
         EngineResponse {
             throttle_req: desired_throttle,

@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use core::ops::{Add, Div, Mul, Sub};
 
 // pub struct for a timestamp.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
@@ -48,14 +48,14 @@ impl Add<u64> for Duration {
     }
 }
 
-impl From<std::time::Duration> for Duration {
-    fn from(value: std::time::Duration) -> Self {
+impl From<core::time::Duration> for Duration {
+    fn from(value: core::time::Duration) -> Self {
         Duration::from_millis(value.as_millis() as u64)
     }
 }
-impl Into<std::time::Duration> for Duration {
-    fn into(self) -> std::time::Duration {
-        std::time::Duration::from_millis(self.as_millis())
+impl Into<core::time::Duration> for Duration {
+    fn into(self) -> core::time::Duration {
+        core::time::Duration::from_millis(self.as_millis())
     }
 }
 
@@ -64,7 +64,7 @@ impl Into<std::time::Duration> for Duration {
 pub struct Timestamp(u64);
 
 impl Timestamp {
-    // Create a new timestamp from nanoseconds.
+    // Create a new timestamp from microseconds.
     pub fn from_micros(ms: u64) -> Self {
         Timestamp(ms)
     }

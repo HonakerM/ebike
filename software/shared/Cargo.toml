@@ -8,7 +8,11 @@ authors = ["Michael Honaker <mchonaker@gmail.com>"]
 
 [dependencies]
 embedded-can = "0.4.1"
+micromath = "2.1.0"
 pid-lite = { version = "1.2.0", default-features = false }
+
+[features]
+std = []
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }

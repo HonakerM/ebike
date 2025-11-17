@@ -55,6 +55,10 @@ impl Message {
     }
 }
 
+#[cfg(feature = "std")]
+extern crate std;
+
+#[cfg(feature = "std")]
 impl From<String> for Message {
     fn from(s: String) -> Self {
         // Deserialize the string into a Message
@@ -81,6 +85,7 @@ impl From<String> for Message {
     }
 }
 
+#[cfg(feature = "std")]
 impl Into<String> for Message {
     fn into(self) -> String {
         // Serialize the Message into a string
@@ -98,6 +103,7 @@ impl Into<String> for Message {
     }
 }
 
+#[cfg(feature = "std")]
 // Helper function to convert a byte slice to a hexadecimal string
 fn bytes_to_hex(bytes: &[u8]) -> String {
     let mut hex = String::new();
@@ -107,6 +113,7 @@ fn bytes_to_hex(bytes: &[u8]) -> String {
     hex
 }
 
+#[cfg(feature = "std")]
 // Helper function to convert a hexadecimal string back to a byte vector
 fn hex_to_bytes<const N: usize>(hex: &str) -> Result<[u8; N], String> {
     if hex.len() < N * 2 {

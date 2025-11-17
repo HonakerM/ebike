@@ -1,3 +1,5 @@
+#![no_std]
+
 #[path = "./messages/mod.rs"]
 pub mod messages;
 

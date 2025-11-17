@@ -1,4 +1,5 @@
 use crate::utils::percentage::Percentage;
+use micromath::F32Ext;
 
 // aggressive throttle application first
 fn level_0(req: Percentage) -> Percentage {

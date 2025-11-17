@@ -22,7 +22,9 @@ fn main() {
 
         loop {
             if let Ok(msg) = rcv.recv() {
+                println!("Got Message {:?}", msg);
                 writeln!(writer, "{:?}", msg).unwrap();
+                writer.flush();
             }
         }
     });

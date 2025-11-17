@@ -6,7 +6,7 @@ use std::{
 };
 use tokio::{io, sync::MutexGuard, task};
 
-use futures::StreamExt;
+use futures::{FutureExt, StreamExt};
 use shared::{
     config::config::Config,
     controllers::{
@@ -56,7 +56,7 @@ pub async fn get_next_message() -> Message {
                 let msg = lock.recv_timeout(Duration::from_millis(10));
                 if let Ok(msg) = msg {
                     {
-                        let mut lock = DEBUG_CAN_SEND.get().unwrap().lock().await;
+                        let mut lock = DEBUG_CAN_SEND.get().unwrap().lock().now_or_never().unwrap();
                         lock.send(Messagestats::new(msg));
                     }
                     return msg;
@@ -108,10 +108,10 @@ pub fn setup() -> (
     LOCAL_CAN_SEND.set(Mutex::new(can_send.clone()));
     LOCAL_CAN_RCV.set(Mutex::new(can_recv));
 
-    let (debug_send, can_recv) = std::sync::mpsc::channel();
+    let (debug_send, debug_recv) = std::sync::mpsc::channel();
     DEBUG_CAN_SEND.set(Mutex::new(debug_send));
 
-    (Config::default(), can_send, can_recv)
+    (Config::default(), can_send, debug_recv)
 }
 
 pub async fn run(config: Config) {

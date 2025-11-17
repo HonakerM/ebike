@@ -1,0 +1,33 @@
+Messagestats { msg: ControlReqMessage(ControlReqMessage { throttle_req: Percentage { raw_val: 0.5 }, brake_req: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413794808212) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413794808223) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.24996972 } }), time: Timestamp(1763413795436144) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.24996972 } }), time: Timestamp(1763413795936456) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.24996972 } }), time: Timestamp(1763413796454715) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.24996972 } }), time: Timestamp(1763413796970613) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.24996972 } }), time: Timestamp(1763413797455009) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.24996972 } }), time: Timestamp(1763413797954115) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.24996972 } }), time: Timestamp(1763413798483204) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.24996972 } }), time: Timestamp(1763413798972256) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.24996972 } }), time: Timestamp(1763413799492881) }
+Messagestats { msg: ControlReqMessage(ControlReqMessage { throttle_req: Percentage { raw_val: 1.0 }, brake_req: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413799862408) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413799988377) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413800488347) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413800988465) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413801471526) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413801984022) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413802484993) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413802989021) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413803488282) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413803989569) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413804502668) }
+Messagestats { msg: ControlReqMessage(ControlReqMessage { throttle_req: Percentage { raw_val: 0.0 }, brake_req: Percentage { raw_val: 1.0 } }), time: Timestamp(1763413804888135) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413805019120) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413805526501) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413806049801) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413806567089) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413807081270) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413807603091) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413808106101) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413808622721) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413809150704) }
+Messagestats { msg: EcuMessage(EcuMessage { throttle: Percentage { raw_val: 0.0 } }), time: Timestamp(1763413809668414) }

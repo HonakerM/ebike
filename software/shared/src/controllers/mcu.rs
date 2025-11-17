@@ -1,5 +1,5 @@
+use core::ops::{Deref, DerefMut};
 use core::time;
-use std::ops::{Deref, DerefMut};
 
 use crate::{
     config::config::Config,
@@ -150,7 +150,7 @@ where
                 let msg = controller.broadcast_ecu();
                 (controller.config.mcu.ecu_poll, msg)
             };
-            eprintln!("{}", Into::<String>::into(msg));
+            //eprintln!("{}", Into::<String>::into(msg));
             ((self.interface.broadcast_can_message)(msg)).await;
             (self.interface.sleep)(sleep_time).await
         }
