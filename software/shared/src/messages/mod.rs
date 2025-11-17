@@ -1,5 +1,5 @@
 #[path = "./ids.rs"]
 pub mod ids;
 
-#[path = "./messages.rs"]
+#[path = "./messages/mod.rs"]
 pub mod messages;

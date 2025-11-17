@@ -4,15 +4,15 @@ use crate::{
         traction_control::{TractionControl, TractionControlMode},
     },
     subsystems::shared::Subsystem,
-    utils::{percentage::Percentage, speed::WheelSpeed},
+    utils::{percentage::Percentage, speed::WheelSpeed, time::Timestamp},
 };
 
 #[derive(Debug, Clone, Copy)]
 pub struct EngineRequest {
-    pub rear_ws: WheelSpeed,
-    pub front_ws: WheelSpeed,
+    pub rear_ws: Option<WheelSpeed>,
+    pub front_ws: Option<WheelSpeed>,
     pub throttle_req: Percentage,
-    pub timestamp: u64,
+    pub timestamp: Timestamp,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -68,15 +68,19 @@ impl Subsystem<EngineConfig, EngineRequest, EngineResponse> for EngineSubsystem 
         // calculate throttle position from map
         let mut desired_throttle = self.throttle_map.run_algo(req.throttle_req);
 
-        // if we have wheel slip then run TC algo
-        if req.rear_ws > req.front_ws {
-            let slip = Percentage::from_fractional(
-                ((Into::<f32>::into(req.rear_ws) - Into::<f32>::into(req.front_ws))
-                    / Into::<f32>::into(req.rear_ws)),
-            );
-            desired_throttle =
-                self.traction_control
-                    .run_algo(req.timestamp, slip, desired_throttle);
+        // if we have ws info and detected slip run TC
+        if let Some(rear_ws) = req.rear_ws {
+            if let Some(front_ws) = req.front_ws {
+                if rear_ws > front_ws {
+                    let slip = Percentage::from_fractional(
+                        ((Into::<f32>::into(rear_ws) - Into::<f32>::into(front_ws))
+                            / Into::<f32>::into(rear_ws)),
+                    );
+                    desired_throttle =
+                        self.traction_control
+                            .run_algo(req.timestamp, slip, desired_throttle);
+                }
+            }
         }
 
         EngineResponse {

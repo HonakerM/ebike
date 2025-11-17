@@ -1,9 +1,6 @@
 #[path = "./messages/mod.rs"]
 pub mod messages;
 
-#[path = "./consts/mod.rs"]
-pub mod consts;
-
 #[path = "./operations/mod.rs"]
 pub mod operations;
 
@@ -15,3 +12,6 @@ pub mod subsystems;
 
 #[path = "./controllers/mod.rs"]
 pub mod controllers;
+
+#[path = "./config/mod.rs"]
+pub mod config;

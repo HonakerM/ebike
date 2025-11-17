@@ -1,11 +1,17 @@
 use std::time::Duration;
 
-use crate::messages::messages::Message;
+use crate::{config::config::Config, messages::messages::Message, utils::time::Timestamp};
 
-pub trait Executor {}
-
-pub trait Controller<Config, Req, Res> {
-    fn new() -> Self;
-    async fn run_tick(&mut self);
-    async fn run_event(&mut self, message: Message);
+pub struct HalInterface<F>
+where
+    F: std::future::Future,
+{
+    pub get_timestamp: fn() -> Timestamp,
+    pub sleep: fn(Duration) -> F,
+}
+pub trait Controller<F>
+where
+    F: std::future::Future,
+{
+    fn new(config: Config, interface: HalInterface<F>) -> Self;
 }

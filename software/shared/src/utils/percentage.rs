@@ -86,7 +86,7 @@ impl Div<Percentage> for Percentage {
 }
 
 impl Percentage {
-    pub fn from_fractional(value: f32) -> Self {
+    pub const fn from_fractional(value: f32) -> Self {
         Self {
             raw_val: value * 100.0,
         }

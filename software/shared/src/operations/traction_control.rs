@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use pid_lite::Controller;
 
-use crate::utils::{percentage::Percentage, speed::WheelSpeed};
+use crate::utils::{percentage::Percentage, speed::WheelSpeed, time::Timestamp};
 
 // Linear curve over 5secs to full speed
 fn level_0(msec: u32) -> Percentage {
@@ -76,7 +76,7 @@ impl TractionControlMode {
 
 pub struct TractionControl {
     pub mode: TractionControlMode,
-    prev_timestamp: Option<u64>,
+    prev_timestamp: Option<Timestamp>,
     controller: Controller,
     desired_slip: Percentage,
 }
@@ -109,12 +109,12 @@ impl TractionControl {
 
     pub fn run_algo(
         &mut self,
-        curr_time: u64,
+        curr_time: Timestamp,
         current_slip: Percentage,
         curr_req: Percentage,
     ) -> Percentage {
         let elapsed_time = if let Some(prev_time) = self.prev_timestamp {
-            Duration::from_micros(curr_time - prev_time)
+            Duration::from_micros((curr_time - prev_time).as_micros())
         } else {
             Duration::from_micros(0)
         };
