@@ -1,6 +1,6 @@
 [package]
-edition = "2021"
-name = "embassy-stm32f4-examples"
+edition = "2024"
+name = "mcu"
 version = "0.1.0"
 license = "MIT OR Apache-2.0"
 publish = false
@@ -14,6 +14,7 @@ embassy-executor = { version = "0.9.1", default-features = false, features = ["a
 embassy-stm32 = { version = "0.4.0", default-features = false, features = ["defmt", "stm32f429zi", "memory-x", "time-driver-any", "chrono"] }
 embassy-time = "0.5.0"
 panic-probe = { version = "1.0.0", features = ["print-defmt"] }
+shared = { path = "../shared" }
 
 [profile.release]
 debug = 2
