@@ -26,19 +26,13 @@ fn get_timestamp() -> Timestamp {
 }
 
 async fn local_sleep(dur: shared::utils::time::Duration) {
-    println!(
-        "Asking to sleep: {:?} sleeping {:?}",
-        dur,
-        Into::<Duration>::into(dur)
-    );
     tokio::time::sleep(Into::<Duration>::into(dur)).await;
-    println!("Done sleeping");
 }
 
 static LOCAL_CAN_SEND: OnceLock<Mutex<std::sync::mpsc::Sender<Message>>> = OnceLock::new();
 static LOCAL_CAN_RCV: OnceLock<Mutex<std::sync::mpsc::Receiver<Message>>> = OnceLock::new();
 
-async fn get_next_message() -> Message {
+pub async fn get_next_message() -> Message {
     loop {
         if let Some(recv) = LOCAL_CAN_RCV.get() {
             {
@@ -55,7 +49,7 @@ async fn get_next_message() -> Message {
     }
 }
 
-async fn broadcast_message(msg: Message) {
+pub async fn broadcast_message(msg: Message) {
     if let Some(recv) = LOCAL_CAN_SEND.get() {
         let local_can = {
             let lock = recv.lock().await;
@@ -85,19 +79,21 @@ impl From<McuController> for LocalMutex {
     }
 }
 
-#[tokio::main]
-async fn main() {
+pub fn setup() -> (Config, std::sync::mpsc::Sender<Message>) {
     let (can_send, can_recv) = std::sync::mpsc::channel();
-    LOCAL_CAN_SEND.set(Mutex::new(can_send));
+    LOCAL_CAN_SEND.set(Mutex::new(can_send.clone()));
     LOCAL_CAN_RCV.set(Mutex::new(can_recv));
 
+    (Config::default(), can_send)
+}
+
+pub async fn run(config: Config) {
     let interface = HalInterface {
         get_timestamp: get_timestamp,
         get_can_message: get_next_message,
         broadcast_can_message: broadcast_message,
         sleep: local_sleep,
     };
-    let config = Config::default();
 
     let runner: McuRunner<LocalMutex, _, _, _> = McuRunner::new(config, interface);
 
@@ -107,4 +103,10 @@ async fn main() {
         runner.broadcast_ecu(),
         runner.process_messages(),
     );
+}
+
+#[tokio::main]
+async fn main() {
+    let (config, _) = setup();
+    run(config).await;
 }
