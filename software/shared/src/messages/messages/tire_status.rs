@@ -1,5 +1,6 @@
 use crate::utils::{parts::Wheel, speed::WheelSpeed};
 
+#[derive(Debug, Clone, Copy)]
 pub struct TireStatus {
     pub wheel: Wheel,
     pub ws: WheelSpeed,

@@ -1,7 +1,7 @@
 use crate::{
     config::config::Config,
     controllers::shared::{Controller, HalInterface},
-    messages::messages::{ecu::EcuMessage, Message},
+    messages::messages::{Message, ecu::EcuMessage},
     subsystems::{
         mcu::engine::{EngineRequest, EngineSubsystem},
         shared::Subsystem,
@@ -13,6 +13,15 @@ use crate::{
 pub struct McuConfig {
     pub engine_poll: Duration,
     pub ecu_poll: Duration,
+}
+
+impl Default for McuConfig {
+    fn default() -> Self {
+        McuConfig {
+            engine_poll: Duration::from_millis(10),
+            ecu_poll: Duration::from_millis(20),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -38,24 +47,18 @@ impl Default for McuState {
     }
 }
 
-pub struct McuController<F>
-where
-    F: std::future::Future,
-{
+pub struct McuController {
     pub config: Config,
     state: McuState,
-    interface: HalInterface<F>,
+    interface: HalInterface,
 
     engine_subsystem: EngineSubsystem,
 }
 
-impl<F> Controller<F> for McuController<F>
-where
-    F: std::future::Future,
-{
-    fn new(config: Config, interface: HalInterface<F>) -> Self {
+impl Controller for McuController {
+    fn new(config: Config, interface: HalInterface) -> Self {
         let engine_subsystem = EngineSubsystem::new(config.engine);
-        McuController::<F> {
+        McuController {
             config,
             state: McuState::default(),
             interface,
@@ -64,10 +67,7 @@ where
     }
 }
 
-impl<F> McuController<F>
-where
-    F: std::future::Future,
-{
+impl McuController {
     pub fn process_message(&mut self, msg: Message) {
         match msg {
             Message::TireStatusMessage(status) => match status.wheel {
@@ -97,10 +97,9 @@ where
         self.state.throttle = resp.throttle_req;
     }
 
-    pub async fn broadcast_ecu(&self) {
-        let ecu_message = Message::EcuMessage(EcuMessage {
+    pub fn broadcast_ecu(&self) -> Message {
+        Message::EcuMessage(EcuMessage {
             throttle: self.state.throttle,
-        });
-        (self.interface.broadcast)(ecu_message).await;
+        })
     }
 }

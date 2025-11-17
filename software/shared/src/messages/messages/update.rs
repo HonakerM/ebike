@@ -50,6 +50,7 @@ impl UpdateField {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct Update {
     pub field: UpdateField,
     pub data: [u8; 7],

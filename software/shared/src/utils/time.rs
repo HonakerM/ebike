@@ -6,12 +6,12 @@ pub struct Duration(u64);
 
 impl Duration {
     // Create a new timestamp from nanoseconds.
-    pub fn from_ms(ms: u64) -> Self {
+    pub fn from_millis(ms: u64) -> Self {
         Duration(ms)
     }
 
     // Get the timestamp in nanoseconds.
-    pub fn as_ms(&self) -> u64 {
+    pub fn as_millis(&self) -> u64 {
         self.0
     }
 }

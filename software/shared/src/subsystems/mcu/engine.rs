@@ -27,6 +27,16 @@ pub struct EngineConfig {
     pub desired_slip: Percentage,
 }
 
+impl Default for EngineConfig {
+    fn default() -> Self {
+        EngineConfig {
+            throttle_map_mode: ThottleMapMode::Level2(),
+            traction_control_mode: TractionControlMode::Level1(),
+            desired_slip: Percentage::from_fractional(0.1),
+        }
+    }
+}
+
 pub struct EngineSubsystem {
     pub throttle_map: ThottleMap,
     pub traction_control: TractionControl,

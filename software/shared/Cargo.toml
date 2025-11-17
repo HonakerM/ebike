@@ -9,3 +9,9 @@ authors = ["Michael Honaker <mchonaker@gmail.com>"]
 [dependencies]
 embedded-can = "0.4.1"
 pid-lite = { version = "1.2.0", default-features = false }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["full"] }
+futures = "0.3.31"
+base64 = {version = "0.22.1"}
