@@ -131,3 +131,13 @@ fn hex_to_bytes<const N: usize>(hex: &str) -> Result<[u8; N], String> {
     }
     Ok(array)
 }
+
+
+#[cfg(feature = "defmt")]
+impl defmt::Format for Message {
+    fn format(&self, f: defmt::Formatter) {
+        // Use the Debug2Format adapter to format MyStruct using its Debug implementation
+        defmt::write!(f, "{}", defmt::Debug2Format(self));
+    }
+}
+

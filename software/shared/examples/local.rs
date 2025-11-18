@@ -99,6 +99,58 @@ impl From<McuController> for LocalMutex {
     }
 }
 
+
+
+pub struct LocalMcuRunner
+{
+    controller: LocalMutex,
+}
+
+impl LocalMcuRunner{
+
+    fn new(config: Config) -> Self {
+        let controler = McuController::new(config);
+        let controller = LocalMutex::from(controler);
+        LocalMcuRunner {
+            controller,
+        }
+    }
+
+    pub async fn broadcast_ecu(&self) {
+        loop {
+            let (sleep_time, msg) = {
+                let controller = self.controller.lock().await;
+                let msg = controller.broadcast_ecu();
+                (controller.config.mcu.ecu_poll, msg)
+            };
+            //eprintln!("{}", Into::<String>::into(msg));
+            (broadcast_message(msg)).await;
+            local_sleep(sleep_time).await
+        }
+    }
+    pub async fn run_engine_subsystem(&self) {
+        loop {
+            let sleep_time = {
+                let mut controller = self.controller.lock().await;
+                controller.run_engine_subsystem((get_timestamp()));
+                controller.config.mcu.engine_poll
+            };
+            local_sleep(sleep_time).await
+        }
+    }
+
+    pub async fn process_messages(&self) {
+        loop {
+            let msg = get_next_message().await;
+            {
+                let mut controller = self.controller.lock().await;
+                controller.process_message(msg);
+            }
+        }
+    }
+}
+
+
 pub fn setup() -> (
     Config,
     std::sync::mpsc::Sender<Message>,
@@ -115,14 +167,8 @@ pub fn setup() -> (
 }
 
 pub async fn run(config: Config) {
-    let interface = HalInterface {
-        get_timestamp: get_timestamp,
-        get_can_message: get_next_message,
-        broadcast_can_message: broadcast_message,
-        sleep: local_sleep,
-    };
 
-    let runner: McuRunner<LocalMutex, _, _, _> = McuRunner::new(config, interface);
+    let runner = LocalMcuRunner::new(config);
 
     // Spawn a new task
     let (_, _, _) = tokio::join!(

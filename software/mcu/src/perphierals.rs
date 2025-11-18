@@ -3,36 +3,41 @@
 
 use defmt::*;
 use embassy_executor::Spawner;
-use embassy_stm32::{PeripheralType, Peripherals, bind_interrupts};
 use embassy_stm32::can::filter::Mask32;
 use embassy_stm32::can::{
-    Can, Fifo, Frame, Rx0InterruptHandler, Rx1InterruptHandler, SceInterruptHandler, StandardId,
-    TxInterruptHandler,
+    Can, CanRx, CanTx, Fifo, Frame, Rx0InterruptHandler, Rx1InterruptHandler, SceInterruptHandler,
+    StandardId, TxInterruptHandler,
 };
 use embassy_stm32::gpio::{Input, Pull};
 use embassy_stm32::peripherals::CAN1;
+use embassy_stm32::peripherals::TIM2;
+use embassy_stm32::peripherals::TIM4;
+use embassy_stm32::timer::UpdateInterruptHandler;
+use embassy_stm32::{PeripheralType, Peripherals, bind_interrupts};
 use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
 use embassy_sync::mutex::{Mutex, MutexGuard};
 use embassy_time::Instant;
+use embassy_time::{Delay, Duration, Timer};
+use embedded_can::Id;
 use shared::config::config::Config;
-use shared::controllers::mcu::{McuController, McuRunner};
-use shared::controllers::shared::{ControllerRunner, HalInterface, Lockable};
 use shared::messages::messages::Message;
 use shared::utils::time::Timestamp;
 use {defmt_rtt as _, panic_probe as _};
-use embassy_time::{Delay, Duration, Timer};
-use embedded_can::Id;
 
 bind_interrupts!(struct Irqs {
     CAN1_RX0 => Rx0InterruptHandler<CAN1>;
     CAN1_RX1 => Rx1InterruptHandler<CAN1>;
     CAN1_SCE => SceInterruptHandler<CAN1>;
     CAN1_TX => TxInterruptHandler<CAN1>;
+
+    TIM2 => UpdateInterruptHandler<TIM2>;
+    TIM4 => UpdateInterruptHandler<TIM4>;
 });
 
-pub static CAN: Mutex<ThreadModeRawMutex, Option<Can>> = Mutex::new(None);
+pub static CAN_TX: Mutex<ThreadModeRawMutex, Option<CanTx>> = Mutex::new(None);
+pub static CAN_RX: Mutex<ThreadModeRawMutex, Option<CanRx>> = Mutex::new(None);
 
-pub async fn setup(mut p: Peripherals){
+pub async fn setup(mut p: Peripherals) {
     // The next two lines are a workaround for testing without transceiver.
     // To synchronise to the bus the RX input needs to see a high level.
     // Use `mem::forget()` to release the borrow on the pin but keep the
@@ -52,5 +57,10 @@ pub async fn setup(mut p: Peripherals){
 
     can.enable().await;
 
-    *CAN.lock().await = Some(can);
+    let (can_tx, can_rx) = can.split();
+
+    *CAN_TX.lock().await = Some(can_tx);
+    *CAN_RX.lock().await = Some(can_rx);
+
+    info!("tim2 freq = {}", p.RCC);
 }

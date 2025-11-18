@@ -1,7 +1,7 @@
 #![no_std]
 
-#[path ="./wrappers.rs"]
+#[path = "./wrappers.rs"]
 pub mod wrappers;
 
-#[path ="./perphierals.rs"]
+#[path = "./perphierals.rs"]
 pub mod perphierals;
