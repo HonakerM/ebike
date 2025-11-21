@@ -51,6 +51,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "cfg-if"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
+
+[[package]]
 name = "cortex-m"
 version = "0.7.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -342,8 +348,10 @@ dependencies = [
  "panic-halt",
  "panic-probe",
  "rtic",
+ "rtic-monotonics",
  "stm32-metapac",
  "stm32f4xx-hal",
+ "systick-monotonic",
 ]
 
 [[package]]
@@ -512,6 +520,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "rtic-monotonic"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb8b0b822d1a366470b9cea83a1d4e788392db763539dc4ba022bcc787fece82"
+
+[[package]]
+name = "rtic-monotonics"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99f9923ce32637ee40c0cb28fbbc2fad880d8aebea2d545918c6971ae9be3d17"
+dependencies = [
+ "cfg-if",
+ "cortex-m",
+ "fugit",
+ "portable-atomic",
+ "rtic-time",
+]
+
+[[package]]
 name = "rtic-time"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -621,6 +648,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "systick-monotonic"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67fb822d5c615a0ae3a4795ee5b1d06381c7faf488d861c0a4fa8e6a88d5ff84"
+dependencies = [
+ "cortex-m",
+ "fugit",
+ "rtic-monotonic",
 ]
 
 [[package]]

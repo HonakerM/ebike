@@ -1,16 +1,14 @@
-use std::{env, path::PathBuf};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Write as _;
 use std::io::Write;
-use std::path::{Path};
+use std::path::Path;
 use std::process::Command;
+use std::{env, path::PathBuf};
 
 use stm32_metapac::metadata::{
-    ALL_CHIPS, ALL_PERIPHERAL_VERSIONS, METADATA, MemoryRegion, MemoryRegionKind, PeripheralRccKernelClock,
-    PeripheralRccRegister, PeripheralRegisters, StopMode,
+    ALL_CHIPS, ALL_PERIPHERAL_VERSIONS, METADATA, MemoryRegion, MemoryRegionKind,
+    PeripheralRccKernelClock, PeripheralRccRegister, PeripheralRegisters, StopMode,
 };
-
-
 
 fn mem_filter(chip: &str, region: &str) -> bool {
     // in STM32WB, SRAM2a/SRAM2b are reserved for the radio core.
@@ -22,7 +20,8 @@ fn mem_filter(chip: &str, region: &str) -> bool {
         return false;
     }
 
-    if region.starts_with("SDRAM_") || region.starts_with("FMC_") || region.starts_with("OCTOSPI_") {
+    if region.starts_with("SDRAM_") || region.starts_with("FMC_") || region.starts_with("OCTOSPI_")
+    {
         return false;
     }
 
@@ -30,7 +29,10 @@ fn mem_filter(chip: &str, region: &str) -> bool {
 }
 
 fn get_memory_range(memory: &[MemoryRegion], kind: MemoryRegionKind) -> (u32, u32, String) {
-    let mut mems: Vec<_> = memory.iter().filter(|m| m.kind == kind && m.size != 0).collect();
+    let mut mems: Vec<_> = memory
+        .iter()
+        .filter(|m| m.kind == kind && m.size != 0)
+        .collect();
     mems.sort_by_key(|m| m.address);
 
     let mut start = u32::MAX;
@@ -104,12 +106,10 @@ fn main() {
 
         match (single_bank_selected, dual_bank_selected) {
             (true, true) => panic!("Both 'single-bank' and 'dual-bank' features enabled"),
-            (true, false) => {
-                single_bank_memory.expect("The 'single-bank' feature is not supported on this dual bank chip")
-            }
-            (false, true) => {
-                dual_bank_memory.expect("The 'dual-bank' feature is not supported on this single bank chip")
-            }
+            (true, false) => single_bank_memory
+                .expect("The 'single-bank' feature is not supported on this dual bank chip"),
+            (false, true) => dual_bank_memory
+                .expect("The 'dual-bank' feature is not supported on this single bank chip"),
             (false, false) => {
                 if METADATA.memory.len() != 1 {
                     panic!(
@@ -120,7 +120,7 @@ fn main() {
             }
         }
     };
-    
+
     let out_dir = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
     gen_memory_x(memory, out_dir);
     println!("cargo:rustc-link-search={}", out_dir.display());
