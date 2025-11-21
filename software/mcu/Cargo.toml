@@ -7,18 +7,19 @@ publish = false
 default-run = "mcu"
 
 [dependencies]
-cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
+cortex-m = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
 cortex-m-rt = "0.7.5"
 defmt = "1.0.1"
 defmt-rtt = {version = "1.1.0", features = ["disable-blocking-mode"]}
-embassy-executor = { version = "0.9.1", default-features = false, features = ["arch-cortex-m", "executor-thread", "executor-interrupt", "defmt"] }
-embassy-stm32 = { version = "0.4.0", default-features = false, features = ["defmt", "stm32f429zi", "unstable-pac", "memory-x", "time-driver-tim2", "exti", "chrono"] }
-embassy-sync = { version = "0.7.2", features = ["defmt"] }
-embassy-time = {version = "0.5.0", features = ["defmt"] }
+embassy-executor = { path="../embassy/embassy-executor", default-features = false, features = ["arch-cortex-m", "executor-thread", "executor-interrupt", "defmt"] }
+embassy-stm32 = { path="../embassy/embassy-stm32", default-features = false, features = ["defmt", "stm32f429zi", "unstable-pac", "memory-x", "time", "time-driver-tim4"] }
+embassy-sync = { path="../embassy/embassy-sync", features = ["defmt"] }
+embassy-time = {path="../embassy/embassy-time", features = ["defmt", "defmt-timestamp-uptime", "tick-hz-32_768"] }
 embedded-can = "0.4.1"
 futures = { version = "0.3.31", default-features = false }
 panic-probe = { version = "1.0.0", features = ["print-defmt"] }
 shared = { path = "../shared",features = ["defmt"]}
+chrono = { version = "^0.4", default-features = false}
 
 [profile.release]
 debug = 2

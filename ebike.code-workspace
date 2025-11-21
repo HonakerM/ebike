@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"rust-analyzer.cargo.allTargets": false,
+		"rust-analyzer.linkedProjects": [
+			"software/fcu/Cargo.toml",
+			"software/ccu/Cargo.toml",
+			"software/shared/Cargo.toml",
+			"software/mcu/Cargo.toml",
+			"software/embassy/embassy-stm32/Cargo.toml"
+		]
+	},
+
+}
