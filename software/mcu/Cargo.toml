@@ -14,7 +14,7 @@ defmt-rtt = "1.1.0"
 panic-halt = "1.0.0"
 panic-probe = { version = "0.3", features = ["print-defmt"] }
 rtic = { version = "2.0.0", features = [ "thumbv7-backend" ] }
-stm32f4xx-hal = { version = "0.23.0", features = [ "stm32f429", "defmt", "can"]}
+stm32f4xx-hal = { version = "0.23.0", features = [ "stm32f429", "defmt", "can", "rtic2"]}
 # TODO add a monotonic if you use scheduling
 # rtic-monotonics = { version = "1.0.0", features = [ "cortex-m-systick" ]}
 
