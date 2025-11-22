@@ -1,6 +1,7 @@
 use crate::utils::{parts::Wheel, speed::WheelSpeed};
 
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct TireStatus {
     pub wheel: Wheel,
     pub ws: WheelSpeed,

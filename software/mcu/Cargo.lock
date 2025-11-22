@@ -45,6 +45,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3110c36f496cf7110ab17c48ad714225330862101ec30197a9898006cd3e2862"
 dependencies = [
  "bitflags",
+ "defmt 0.3.100",
  "embedded-can",
  "nb 1.1.0",
  "vcell",
@@ -341,10 +342,13 @@ checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
 name = "mcu"
 version = "0.1.0"
 dependencies = [
+ "bxcan",
  "cortex-m",
  "defmt 0.3.100",
  "defmt-brtt",
  "defmt-rtt",
+ "embedded-can",
+ "nb 1.1.0",
  "panic-halt",
  "panic-probe",
  "rtic",
@@ -587,6 +591,7 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 name = "shared"
 version = "0.1.0"
 dependencies = [
+ "defmt 1.0.1",
  "embedded-can",
  "micromath",
  "pid-lite",

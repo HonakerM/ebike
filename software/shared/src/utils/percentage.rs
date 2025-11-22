@@ -1,6 +1,7 @@
 use core::ops::{Add, Div, Mul, Sub};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Percentage {
     // stored as raw value percetnage e.g 100.0% is 100.0
     raw_val: f32,

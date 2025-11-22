@@ -1,6 +1,7 @@
 use crate::utils::percentage::Percentage;
 
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct ControlReqMessage {
     pub throttle_req: Percentage,
     pub brake_req: Percentage,

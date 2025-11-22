@@ -1,6 +1,7 @@
 use crate::utils::percentage::Percentage;
 
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct EcuMessage {
     pub throttle: Percentage,
 }

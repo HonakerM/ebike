@@ -5,6 +5,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum UpdateField {
     TMM(), // Throttle Map Mode
     TCM(), // Traction Control Mode
@@ -51,6 +52,7 @@ impl UpdateField {
 }
 
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Update {
     pub field: UpdateField,
     pub data: [u8; 7],

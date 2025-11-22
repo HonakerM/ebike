@@ -1,6 +1,7 @@
 use core::ops::{Add, Div, Mul, Sub};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct WheelSpeed {
     rpm: u16,
 }
@@ -46,6 +47,8 @@ impl WheelSpeed {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct GroundSpeed {
     pub mph: f32,
 }
