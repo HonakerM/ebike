@@ -17,6 +17,7 @@ rtic = { version = "2.0.0", features = [ "thumbv7-backend" ] }
 rtic-monotonics = { version = "2.1.0", features = ["cortex-m-systick"]}
 stm32f4xx-hal = { version = "0.23.0", features = [ "stm32f429", "defmt", "can", "rtic2"]}
 systick-monotonic = {version = "1.0.1"}
+shared = {path = "../shared"}
 # TODO add a monotonic if you use scheduling
 # rtic-monotonics = { version = "1.0.0", features = [ "cortex-m-systick" ]}
 

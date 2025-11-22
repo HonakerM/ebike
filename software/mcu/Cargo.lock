@@ -349,6 +349,7 @@ dependencies = [
  "panic-probe",
  "rtic",
  "rtic-monotonics",
+ "shared",
  "stm32-metapac",
  "stm32f4xx-hal",
  "systick-monotonic",
@@ -399,6 +400,12 @@ dependencies = [
  "cortex-m",
  "defmt 0.3.100",
 ]
+
+[[package]]
+name = "pid-lite"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "525af580ce1fff6a619c17736c1d91dcab5d5abff5df3937136f499922dfa73f"
 
 [[package]]
 name = "pin-project-lite"
@@ -575,6 +582,15 @@ name = "semver-parser"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
+
+[[package]]
+name = "shared"
+version = "0.1.0"
+dependencies = [
+ "embedded-can",
+ "micromath",
+ "pid-lite",
+]
 
 [[package]]
 name = "stable_deref_trait"
