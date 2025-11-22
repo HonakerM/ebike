@@ -3,3 +3,6 @@ pub mod shared;
 
 #[path = "./mcu.rs"]
 pub mod mcu;
+
+#[path = "./fcu.rs"]
+pub mod fcu;

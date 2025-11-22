@@ -60,6 +60,10 @@ impl Message {
             Message::ConfigMessage(_) => CFG_MESG_ID.as_raw(),
         }
     }
+
+    pub fn to_embedded_id(&self)-> StandardId {
+        return unsafe {StandardId::new_unchecked(self.to_id())};
+    }
 }
 
 #[cfg(feature = "std")]

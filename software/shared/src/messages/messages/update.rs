@@ -4,7 +4,7 @@ use crate::{
     utils::{parts::Wheel, speed::WheelSpeed},
 };
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum UpdateField {
     TMM(), // Throttle Map Mode

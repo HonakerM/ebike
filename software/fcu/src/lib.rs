@@ -1,1 +1,2 @@
-#![no_std]
+#[path = "./peripherals.rs"]
+pub mod peripherals;

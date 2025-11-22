@@ -23,6 +23,16 @@ pub enum ThottleMapMode {
     Level2(),
 }
 
+impl ThottleMapMode { 
+    pub fn update(&self, req: Percentage) -> Percentage {
+        match self {
+            ThottleMapMode::Level0() => {level_0(req)}
+            ThottleMapMode::Level1() => {level_1(req)}
+            ThottleMapMode::Level2() => {level_2(req)}
+        }
+    }
+}
+
 impl Into<u8> for ThottleMapMode {
     fn into(self) -> u8 {
         match self {
@@ -57,10 +67,6 @@ impl ThottleMap {
         self.mode = mode;
     }
     pub fn run_algo(&self, req: Percentage) -> Percentage {
-        match self.mode {
-            ThottleMapMode::Level0() => level_0(req),
-            ThottleMapMode::Level1() => level_1(req),
-            ThottleMapMode::Level2() => level_2(req),
-        }
+        self.mode.update(req)
     }
 }
