@@ -1,8 +1,9 @@
 use embedded_can::StandardId;
 
 use crate::{
+    config::config::{Config, ConfigDelta},
     messages::{
-        ids::{CTL_MESG_ID, ECU_MESG_ID, TRS_MESG_ID, UPD_MESG_ID},
+        ids::{CFG_MESG_ID, CTL_MESG_ID, ECU_MESG_ID, TRS_MESG_ID, UPD_MESG_ID},
         messages::{
             control_req::ControlReqMessage, ecu::EcuMessage, tire_status::TireStatus,
             update::Update,
@@ -17,6 +18,7 @@ pub enum Message {
     TireStatusMessage(TireStatus),
     ControlReqMessage(ControlReqMessage),
     UpdateMessage(Update),
+    ConfigMessage(ConfigDelta),
 }
 
 impl Message {
@@ -26,10 +28,12 @@ impl Message {
             Message::TireStatusMessage(msg) => msg.to_bytes(),
             Message::ControlReqMessage(msg) => msg.to_bytes(),
             Message::UpdateMessage(msg) => msg.to_bytes(),
+            Message::ConfigMessage(msg) => msg.to_bytes(),
         }
     }
 
-    pub fn from_bytes(id: StandardId, data: &[u8]) -> Option<Self> {
+    pub fn from_bytes(id: u16, data: &[u8]) -> Option<Self> {
+        let id = unsafe { StandardId::new_unchecked(id) };
         if id == ECU_MESG_ID {
             Some(Message::EcuMessage(EcuMessage::from_bytes(data)))
         } else if id == CTL_MESG_ID {
@@ -40,17 +44,20 @@ impl Message {
             Some(Message::TireStatusMessage(TireStatus::from_bytes(data)))
         } else if id == UPD_MESG_ID {
             Some(Message::UpdateMessage(Update::from_bytes(data)))
+        } else if id == CFG_MESG_ID {
+            Some(Message::ConfigMessage(ConfigDelta::from_bytes(data)))
         } else {
             None
         }
     }
 
-    pub fn to_id(&self) -> StandardId {
+    pub fn to_id(&self) -> u16 {
         match self {
-            Message::EcuMessage(_) => ECU_MESG_ID,
-            Message::TireStatusMessage(_) => TRS_MESG_ID,
-            Message::ControlReqMessage(_) => CTL_MESG_ID,
-            Message::UpdateMessage(_) => UPD_MESG_ID,
+            Message::EcuMessage(_) => ECU_MESG_ID.as_raw(),
+            Message::TireStatusMessage(_) => TRS_MESG_ID.as_raw(),
+            Message::ControlReqMessage(_) => CTL_MESG_ID.as_raw(),
+            Message::UpdateMessage(_) => UPD_MESG_ID.as_raw(),
+            Message::ConfigMessage(_) => CFG_MESG_ID.as_raw(),
         }
     }
 }
@@ -132,7 +139,6 @@ fn hex_to_bytes<const N: usize>(hex: &str) -> Result<[u8; N], String> {
     Ok(array)
 }
 
-
 #[cfg(feature = "defmt")]
 impl defmt::Format for Message {
     fn format(&self, f: defmt::Formatter) {
@@ -140,4 +146,3 @@ impl defmt::Format for Message {
         defmt::write!(f, "{}", defmt::Debug2Format(self));
     }
 }
-

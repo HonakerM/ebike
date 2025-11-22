@@ -6,7 +6,6 @@ use crate::{
     utils::time::{Duration, Timestamp},
 };
 
-
 pub trait Lockable {
     type Target: ?Sized;
     type Guard<'a>: core::ops::DerefMut<Target = Self::Target> + 'a

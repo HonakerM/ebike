@@ -99,21 +99,15 @@ impl From<McuController> for LocalMutex {
     }
 }
 
-
-
-pub struct LocalMcuRunner
-{
+pub struct LocalMcuRunner {
     controller: LocalMutex,
 }
 
-impl LocalMcuRunner{
-
+impl LocalMcuRunner {
     fn new(config: Config) -> Self {
         let controler = McuController::new(config);
         let controller = LocalMutex::from(controler);
-        LocalMcuRunner {
-            controller,
-        }
+        LocalMcuRunner { controller }
     }
 
     pub async fn broadcast_ecu(&self) {
@@ -150,7 +144,6 @@ impl LocalMcuRunner{
     }
 }
 
-
 pub fn setup() -> (
     Config,
     std::sync::mpsc::Sender<Message>,
@@ -167,7 +160,6 @@ pub fn setup() -> (
 }
 
 pub async fn run(config: Config) {
-
     let runner = LocalMcuRunner::new(config);
 
     // Spawn a new task

@@ -1,9 +1,10 @@
 use core::ops::{Deref, DerefMut};
 use core::time;
 
+use crate::config::config::ConfigDelta;
 use crate::{
     config::config::Config,
-    controllers::shared::{ Lockable},
+    controllers::shared::Lockable,
     messages::messages::{Message, ecu::EcuMessage},
     subsystems::{
         mcu::engine::{EngineRequest, EngineSubsystem},
@@ -21,13 +22,15 @@ use crate::{
 pub struct McuConfig {
     pub engine_poll: Duration,
     pub ecu_poll: Duration,
+    pub config_poll: Duration,
 }
 
 impl Default for McuConfig {
     fn default() -> Self {
         McuConfig {
-            engine_poll: Duration::from_millis(100),
-            ecu_poll: Duration::from_millis(500),
+            engine_poll: Duration::from_millis(20),
+            ecu_poll: Duration::from_millis(100),
+            config_poll: Duration::from_millis(1000),
         }
     }
 }
@@ -86,6 +89,9 @@ impl McuController {
                 self.state.throttle_req = req.throttle_req;
                 self.state.brake_req = req.brake_req;
             }
+            Message::UpdateMessage(req) => {
+                req.update(&mut self.config);
+            }
             _ => {}
         }
     }
@@ -104,6 +110,12 @@ impl McuController {
     pub fn broadcast_ecu(&self) -> Message {
         Message::EcuMessage(EcuMessage {
             throttle: self.state.throttle,
+        })
+    }
+
+    pub fn broadcast_config(&self) -> Message {
+        Message::ConfigMessage(ConfigDelta {
+            engine: self.config.engine,
         })
     }
 }

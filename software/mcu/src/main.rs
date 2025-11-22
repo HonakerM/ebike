@@ -87,10 +87,7 @@ mod app {
             });
 
             cx.shared.can_tx.lock(|cn| {
-                let frame = Frame::new_data(
-                    StandardId::new(msg.to_id().as_raw()).unwrap(),
-                    msg.to_bytes(),
-                );
+                let frame = Frame::new_data(StandardId::new(msg.to_id()).unwrap(), msg.to_bytes());
 
                 println!("Sending msg: {}", msg);
                 let mail_box = match cn.transmit(&frame) {
@@ -117,6 +114,25 @@ mod app {
                 cx.shared.prev_ecu_mailbox.lock(|prev_ecu| {
                     *prev_ecu = mail_box;
                 });
+            });
+
+            Mono::delay((sleep_time.as_millis() as u32).millis()).await;
+        }
+    }
+
+    #[task(shared = [controller, can_tx])]
+    async fn broadcast_config(mut cx: broadcast_config::Context) {
+        loop {
+            let (sleep_time, msg) = cx.shared.controller.lock(|ctl| {
+                let msg = ctl.broadcast_config();
+                (ctl.config.mcu.config_poll, msg)
+            });
+
+            cx.shared.can_tx.lock(|cn| {
+                let frame = Frame::new_data(StandardId::new(msg.to_id()).unwrap(), msg.to_bytes());
+
+                println!("Sending msg: {}", msg);
+                let _ = cn.transmit(&frame);
             });
 
             Mono::delay((sleep_time.as_millis() as u32).millis()).await;
@@ -170,10 +186,7 @@ mod app {
                     continue;
                 };
 
-                let parsed_msg = Message::from_bytes(
-                    unsafe { embedded_can::StandardId::new_unchecked(raw_id) },
-                    msg.data().unwrap(),
-                );
+                let parsed_msg = Message::from_bytes(raw_id, msg.data().unwrap());
                 if let Some(parsed_msg) = parsed_msg {
                     println!("Processing Message: ");
                     cx.shared.controller.lock(|ctl| {

@@ -87,4 +87,8 @@ impl Update {
             data: parsed_data,
         }
     }
+
+    pub fn update(&self, config: &mut Config) {
+        self.field.update_config(config, self.data);
+    }
 }
