@@ -29,7 +29,7 @@ impl Default for McuConfig {
     fn default() -> Self {
         McuConfig {
             engine_poll: Duration::from_millis(20),
-            ecu_poll: Duration::from_millis(100),
+            ecu_poll: Duration::from_millis(50),
             config_poll: Duration::from_millis(1000),
         }
     }

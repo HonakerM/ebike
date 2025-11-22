@@ -2,6 +2,8 @@ use core::ops::{Deref, DerefMut};
 use core::time;
 
 use crate::config::config::ConfigDelta;
+use crate::messages::messages::control_req::ControlReqMessage;
+use crate::messages::messages::tire_status::TireStatus;
 use crate::operations::config_updater::{ConfigUpdateState, ConfigUpdater};
 use crate::{
     config::config::Config,
@@ -20,22 +22,20 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy)]
-pub struct FcuConfig {
-}
+pub struct FcuConfig {}
 
 impl Default for FcuConfig {
     fn default() -> Self {
-        FcuConfig {
-        }
+        FcuConfig {}
     }
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct FcuState {
-    throttle_req: Percentage,
-    brake_req: Percentage,
-    cur_state: ConfigUpdateState,
-    cur_ws: Option<WheelSpeed>,
+    pub throttle_req: Percentage,
+    pub brake_req: Percentage,
+    pub update: ConfigUpdateState,
+    pub cur_ws: Option<WheelSpeed>,
 }
 
 impl Default for FcuState {
@@ -43,7 +43,7 @@ impl Default for FcuState {
         FcuState {
             throttle_req: Percentage::zero(),
             brake_req: Percentage::zero(),
-            cur_state: ConfigUpdateState::default(),
+            update: ConfigUpdateState::default(),
             cur_ws: None,
         }
     }
@@ -52,7 +52,6 @@ impl Default for FcuState {
 pub struct FcuController {
     pub config: Config,
     state: FcuState,
-
     config_updater: ConfigUpdater,
 }
 
@@ -77,26 +76,33 @@ impl FcuController {
         }
     }
 
-    pub fn run_engine_subsystem(&mut self, timestamp: Timestamp) {
-        let req = EngineRequest {
-            rear_ws: self.state.rear_ws,
-            front_ws: self.state.front_ws,
-            throttle_req: self.state.throttle_req,
-            timestamp: timestamp,
-        };
-        let resp = self.engine_subsystem.run(req);
-        self.state.throttle = resp.throttle_req;
+    pub fn run_config_update(&mut self, state: ConfigUpdateState) -> Option<Message> {
+        if state != self.state.update {
+            self.state.update = state;
+            Some(self.config_updater.run(state))
+        } else {
+            None
+        }
     }
 
-    pub fn broadcast_ecu(&self) -> Message {
-        Message::EcuMessage(EcuMessage {
-            throttle: self.state.throttle,
+    pub fn broadcast_ctl(&mut self, throttle: Percentage, brake: Percentage) -> Message {
+        self.state.brake_req = brake;
+        self.state.throttle_req = throttle;
+        Message::ControlReqMessage(ControlReqMessage {
+            throttle_req: throttle,
+            brake_req: brake,
         })
     }
 
-    pub fn broadcast_config(&self) -> Message {
-        Message::ConfigMessage(ConfigDelta {
-            engine: self.config.engine,
+    pub fn broadcast_wheel(&mut self, ws: WheelSpeed) -> Message {
+        self.state.cur_ws = Some(ws);
+        Message::TireStatusMessage(TireStatus {
+            wheel: Wheel::Front,
+            ws: ws,
         })
+    }
+
+    pub fn update_user_display(&self) -> FcuState {
+        self.state
     }
 }

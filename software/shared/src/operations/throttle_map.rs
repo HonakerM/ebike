@@ -16,19 +16,27 @@ fn level_2(req: Percentage) -> Percentage {
     ((Into::<f32>::into(req)).powf(2.0)).into()
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ThottleMapMode {
     Level0(),
     Level1(),
     Level2(),
 }
 
-impl ThottleMapMode { 
+impl ThottleMapMode {
     pub fn update(&self, req: Percentage) -> Percentage {
         match self {
-            ThottleMapMode::Level0() => {level_0(req)}
-            ThottleMapMode::Level1() => {level_1(req)}
-            ThottleMapMode::Level2() => {level_2(req)}
+            ThottleMapMode::Level0() => level_0(req),
+            ThottleMapMode::Level1() => level_1(req),
+            ThottleMapMode::Level2() => level_2(req),
+        }
+    }
+
+    pub fn to_small_str(&self) -> &str {
+        match self {
+            ThottleMapMode::Level0() => "000",
+            ThottleMapMode::Level1() => "001",
+            ThottleMapMode::Level2() => "002",
         }
     }
 }

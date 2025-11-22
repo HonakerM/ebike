@@ -61,8 +61,8 @@ impl Message {
         }
     }
 
-    pub fn to_embedded_id(&self)-> StandardId {
-        return unsafe {StandardId::new_unchecked(self.to_id())};
+    pub fn to_embedded_id(&self) -> StandardId {
+        return unsafe { StandardId::new_unchecked(self.to_id()) };
     }
 }
 

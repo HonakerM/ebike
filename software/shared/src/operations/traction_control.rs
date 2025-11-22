@@ -6,7 +6,7 @@ use crate::utils::{
     time::{Duration, Timestamp},
 };
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TractionControlMode {
     Level0(),
     Level1(),
@@ -54,6 +54,13 @@ impl TractionControlMode {
         match self {
             TractionControlMode::Level0() => 1.0,
             TractionControlMode::Level1() => 1.0,
+        }
+    }
+
+    pub fn to_small_str(&self) -> &str {
+        match self {
+            TractionControlMode::Level0() => "000",
+            TractionControlMode::Level1() => "001",
         }
     }
 }

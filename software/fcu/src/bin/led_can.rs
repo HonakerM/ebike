@@ -1,7 +1,7 @@
 // filepath: /esp32-led-control/esp32-led-control/src/main.rs
+use embedded_can::nb::Can;
 use embedded_can::Frame;
 use embedded_can::StandardId;
-use embedded_can::nb::Can;
 use esp_idf_hal::can;
 use esp_idf_hal::gpio::{Gpio32, Gpio33, Input, Output, PinDriver};
 use esp_idf_hal::peripheral::Peripheral;

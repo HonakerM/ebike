@@ -267,6 +267,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
+name = "format_no_std"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ae45e32b0bfe2c62c805f8e87027b5aa08562000326edbc5b421ab6d92873a7"
+
+[[package]]
 name = "fugit"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -593,6 +599,7 @@ version = "0.1.0"
 dependencies = [
  "defmt 1.0.1",
  "embedded-can",
+ "format_no_std",
  "micromath",
  "pid-lite",
 ]

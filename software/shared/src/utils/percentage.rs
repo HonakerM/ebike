@@ -1,4 +1,7 @@
-use core::{cmp::Ordering, ops::{Add, Div, Mul, Sub}};
+use core::{
+    cmp::Ordering,
+    ops::{Add, Div, Mul, Sub},
+};
 use micromath::F32Ext;
 
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
@@ -88,7 +91,6 @@ impl Div<Percentage> for Percentage {
     }
 }
 
-
 impl Percentage {
     pub const fn from_fractional(value: f32) -> Self {
         let mut us = Self { raw_val: value };
@@ -98,17 +100,17 @@ impl Percentage {
     pub fn to_fractional(&self) -> f32 {
         self.raw_val
     }
-    pub fn from_int(val: u8)->Self {
-        let mut us = Self { raw_val: (val as f32)/100.0 };
+    pub fn from_int(val: u8) -> Self {
+        let mut us = Self {
+            raw_val: (val as f32) / 100.0,
+        };
         us.clamp();
         us
     }
 
-    pub fn to_int(&self)->u8 {
-        (self.raw_val*100.0).round() as u8
-
+    pub fn to_int(&self) -> u8 {
+        (self.raw_val * 100.0).round() as u8
     }
-    
 
     pub fn full() -> Self {
         return Percentage { raw_val: 1.0 };
@@ -123,5 +125,4 @@ impl Percentage {
             self.raw_val = 1.0;
         }
     }
-
 }

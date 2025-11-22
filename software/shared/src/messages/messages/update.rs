@@ -4,7 +4,7 @@ use crate::{
     utils::{parts::Wheel, speed::WheelSpeed},
 };
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum UpdateField {
     TMM(), // Throttle Map Mode
@@ -47,6 +47,14 @@ impl UpdateField {
             UpdateField::DSL() => {
                 config.engine.desired_slip = data[0].into();
             }
+        }
+    }
+
+    pub fn to_small_str(&self) -> &str {
+        match &self {
+            UpdateField::DSL() => "DSL:",
+            UpdateField::TCM() => "TCM:",
+            UpdateField::TMM() => "TMM:",
         }
     }
 }
