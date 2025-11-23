@@ -2,6 +2,8 @@
 use crate::peripherals::broadcast_message;
 use crate::peripherals::get_message;
 use crate::peripherals::get_ti_value;
+use crate::peripherals::get_updater_field_value;
+use crate::peripherals::get_updater_val_value;
 use crate::peripherals::update_display;
 use embedded_can::nb::Can;
 use embedded_can::Frame;
@@ -64,11 +66,9 @@ impl FcuWrapperController {
         // Read the raw values
         //let tc_val = get_ti_value();
         // let break_val = get_ti_value();
-        //let field_per= Percentage::zero();
-        //let val_per = Percentage::zero();
-        //let config_state = ConfigUpdateState::new(field_per, val_per);
-        let config_state = ConfigUpdateState::default();
-
+        let field_per= get_updater_field_value();
+        let val_per = get_updater_val_value();
+        let config_state = ConfigUpdateState::new(field_per, val_per);
         if let Some(msg) = self.controller.run_config_update(config_state) {
             broadcast_message(msg);
         }

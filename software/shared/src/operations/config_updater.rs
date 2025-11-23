@@ -35,7 +35,7 @@ pub struct ConfigUpdateState {
     pub val: ConfigUpdateOptions,
 }
 impl ConfigUpdateState {
-    fn new(field_per: Percentage, val_per: Percentage) -> Self {
+    pub fn new(field_per: Percentage, val_per: Percentage) -> Self {
         let raw_val = field_per.to_fractional();
         let field = if raw_val <= 0.33 {
             UpdateField::DSL()
