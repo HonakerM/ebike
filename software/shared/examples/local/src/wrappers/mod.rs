@@ -9,3 +9,4 @@ pub mod core;
 
 pub use core::setup;
 pub use mcu::LocalMcuRunner;
+pub use fcu::LocalFcuRunner;

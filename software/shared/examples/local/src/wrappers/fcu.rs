@@ -8,10 +8,7 @@ use tokio::{io, sync::MutexGuard, task};
 
 use futures::{FutureExt, StreamExt};
 use shared::{
-    config::config::Config,
-    controllers::{fcu::FcuController, mcu::McuController},
-    messages::messages::Message,
-    utils::time::Timestamp,
+    config::config::Config, controllers::{fcu::FcuController, mcu::McuController}, messages::messages::Message, operations::config_updater::ConfigUpdateState, utils::{percentage::Percentage, time::Timestamp}
 };
 use tokio_util::codec::{FramedRead, LinesCodec}; // For the .next() method on FramedRead
 
@@ -31,29 +28,51 @@ impl LocalFcuRunner {
         LocalFcuRunner { controller }
     }
 
-    pub async fn broadcast_ecu(&self) {
+    pub async fn broadcast_ctl(&self) {
         loop {
             let (sleep_time, msg) = {
-                let controller = self.controller.lock().await;
-                let msg = controller.broadcast_ecu();
-                (controller.config.mcu.ecu_poll, msg)
+                let mut controller = self.controller.lock().await;
+
+                // get tc/break value:
+                let tc_val = Percentage::zero();
+                let break_val = Percentage::zero();
+
+
+                let msg = controller.broadcast_ctl(tc_val, break_val);
+                (controller.config.fcu.ctl_poll, msg)
             };
             //eprintln!("{}", Into::<String>::into(msg));
             (broadcast_message(msg)).await;
             local_sleep(sleep_time).await
         }
     }
-    pub async fn run_engine_subsystem(&self) {
+    pub async fn broadcast_upload(&self) {
         loop {
-            let sleep_time = {
+            let (sleep_time, msg) = {
                 let mut controller = self.controller.lock().await;
-                controller.run_engine_subsystem((get_timestamp()));
-                controller.config.mcu.engine_poll
+                // get tc/break value:
+                let field_per = Percentage::zero();
+                let val_per = Percentage::zero();
+                let config_state = ConfigUpdateState::new(field_per, val_per);
+                let msg = controller.run_config_update(config_state);
+                (controller.config.fcu.update_poll, msg)
             };
+            if let Some(msg) = msg {
+                (broadcast_message(msg)).await;
+            }
             local_sleep(sleep_time).await
         }
     }
 
+    pub async fn update_user_display(&self) {
+        {
+            let mut controller = self.controller.lock().await;
+
+            let state = controller.update_user_display();
+        };
+    }
+
+    
     pub async fn process_messages(&self) {
         loop {
             let msg = get_next_message().await;
@@ -64,13 +83,15 @@ impl LocalFcuRunner {
         }
     }
 
+    
     pub async fn run(config: Config) {
-        let runner = LocalMcuRunner::new(config);
+        let runner = LocalFcuRunner::new(config);
     
         // Spawn a new task
-        let (_, _, _) = tokio::join!(
-            runner.run_engine_subsystem(),
-            runner.broadcast_ecu(),
+        let (_, _, _,_) = tokio::join!(
+            runner.broadcast_ctl(),
+            runner.broadcast_upload(),
+            runner.update_user_display(),
             runner.process_messages(),
         );
     }
