@@ -9,11 +9,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-#[path = "./local.rs"]
-pub mod local;
-
 fn main() {
-    let (config, snd, rcv) = local::setup();
+    let (config, snd, rcv) = local::wrappers::setup();
 
     // Start a thread to save messages to a local text file
     thread::spawn(move || {
@@ -22,7 +19,6 @@ fn main() {
 
         loop {
             if let Ok(msg) = rcv.recv() {
-                println!("Got Message {:?}", msg);
                 writeln!(writer, "{:?}", msg).unwrap();
                 writer.flush();
             }
@@ -34,7 +30,7 @@ fn main() {
             .enable_all()
             .build()
             .unwrap()
-            .block_on(local::run(config))
+            .block_on(local::wrappers::LocalMcuRunner::run(config))
     });
 
     let messages = vec![

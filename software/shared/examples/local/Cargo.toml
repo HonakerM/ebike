@@ -1,0 +1,17 @@
+[package]
+edition = "2024"
+name = "local"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+# Change stm32f429zi to your chip name, if necessary.
+shared = {path = "../../"}
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["full"] }
+futures = "0.3.31"
+base64 = {version = "0.22.1"}
+crossbeam = "0.8.4"
+use = "0.0.1-pre.0"
+embedded-can = "0.4.1"

@@ -11,6 +11,7 @@
 			"software/ccu/Cargo.toml",
 			"software/shared/Cargo.toml",
 			"software/mcu/Cargo.toml",
+			"software/shared/examples/local/Cargo.toml",
 		]
 	},
 

@@ -121,6 +121,7 @@ pub fn setup() {
 }
 
 pub fn broadcast_message(msg: Message) {
+    println!("Broadcasting {:?}", msg);
     critical_section::with(|cs| {
         // `RefCell::borrow` and `RefCell::borrow_mut` are renamed to
         // `borrow_ref` and `borrow_ref_mut` to avoid name collisions

@@ -1,0 +1,83 @@
+use base64::Engine;
+use embedded_can::StandardId;
+use std::{
+    sync::OnceLock,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
+use tokio::{io, sync::MutexGuard, task};
+
+use futures::{FutureExt, StreamExt};
+use shared::{
+    config::config::Config,
+    controllers::{
+        mcu::{McuController, McuRunner},
+        shared::{ControllerRunner, HalInterface, Lockable},
+    },
+    messages::messages::Message,
+    utils::time::Timestamp,
+};
+use tokio_util::codec::{FramedRead, LinesCodec}; // For the .next() method on FramedRead
+
+use tokio::sync::Mutex;
+
+fn get_timestamp() -> Timestamp {
+    let now = SystemTime::now();
+    Timestamp::from_micros(now.duration_since(UNIX_EPOCH).unwrap().as_micros() as u64)
+}
+
+async fn local_sleep(dur: shared::utils::time::Duration) {
+    tokio::time::sleep(Into::<Duration>::into(dur)).await;
+}
+
+static LOCAL_CAN_SEND: OnceLock<Mutex<std::sync::mpsc::Sender<Message>>> = OnceLock::new();
+static LOCAL_CAN_RCV: OnceLock<Mutex<std::sync::mpsc::Receiver<Message>>> = OnceLock::new();
+
+#[derive(Debug)]
+pub struct Messagestats {
+    pub msg: Message,
+    pub time: Timestamp,
+}
+impl Messagestats {
+    pub fn new(msg: Message) -> Self {
+        Messagestats {
+            msg,
+            time: get_timestamp(),
+        }
+    }
+}
+
+static DEBUG_CAN_SEND: OnceLock<Mutex<std::sync::mpsc::Sender<Messagestats>>> = OnceLock::new();
+
+pub async fn get_next_message() -> Message {
+    loop {
+        if let Some(recv) = LOCAL_CAN_RCV.get() {
+            {
+                let lock = recv.lock().await;
+                let msg = lock.recv_timeout(Duration::from_millis(10));
+                if let Ok(msg) = msg {
+                    {
+                        let mut lock = DEBUG_CAN_SEND.get().unwrap().lock().now_or_never().unwrap();
+                        lock.send(Messagestats::new(msg));
+                    }
+                    return msg;
+                }
+                tokio::time::sleep(Duration::from_millis(100)).await;
+            }
+        } else {
+            panic!("No message receiver for CAN")
+        }
+    }
+}
+
+pub async fn broadcast_message(msg: Message) {
+    if let Some(recv) = LOCAL_CAN_SEND.get() {
+        let local_can = {
+            let lock = recv.lock().await;
+            lock.clone()
+        };
+        local_can.send(msg).unwrap();
+        return;
+    }
+    panic!("No message sender for CAN")
+}
+

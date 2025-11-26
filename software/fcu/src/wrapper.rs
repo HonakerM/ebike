@@ -42,6 +42,7 @@ impl FcuWrapperController {
         let mut count: u8 = 0;
         loop {
             if let Some(msg) = get_message(Duration::from_millis(1)) {
+                println!("Procesing Messages {:?}", msg);
                 self.controller.process_message(msg);
                 count += 1;
                 if count > 10 {
