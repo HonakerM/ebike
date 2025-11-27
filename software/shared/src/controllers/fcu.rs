@@ -22,11 +22,21 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy)]
-pub struct FcuConfig {}
+pub struct FcuConfig {
+    pub message_poll: Duration,
+    pub ctl_poll: Duration,
+    pub update_poll: Duration,
+    pub display_poll: Duration,
+}
 
 impl Default for FcuConfig {
     fn default() -> Self {
-        FcuConfig {}
+        FcuConfig {
+            message_poll: Duration::from_millis(250),
+            ctl_poll: Duration::from_millis(15),
+            update_poll: Duration::from_millis(500),
+            display_poll: Duration::from_millis(100),
+        }
     }
 }
 

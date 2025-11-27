@@ -12,7 +12,7 @@ use esp_idf_hal::adc::oneshot::{AdcChannelDriver, AdcDriver};
 use esp_idf_hal::adc::ADC1;
 use esp_idf_hal::can;
 use esp_idf_hal::can::CanDriver;
-use esp_idf_hal::gpio::{Gpio12, Gpio32, Gpio33, Gpio36, Gpio39, Gpio34, Input, Output, PinDriver};
+use esp_idf_hal::gpio::{Gpio12, Gpio32, Gpio33, Gpio34, Gpio36, Gpio39, Input, Output, PinDriver};
 use esp_idf_hal::i2c;
 use esp_idf_hal::i2c::I2cDriver;
 use esp_idf_hal::peripheral::Peripheral;
@@ -32,8 +32,10 @@ use shared::utils::time::Duration;
 use shared::utils::{parts::Wheel, percentage::Percentage, speed::WheelSpeed, time::Timestamp};
 
 type THROTTLE_INPUT_TYPE = AdcChannelDriver<'static, Gpio36, &'static AdcDriver<'static, ADC1>>;
-type UPDATER_FIELD_INPUT_TYPE = AdcChannelDriver<'static, Gpio39, &'static AdcDriver<'static, ADC1>>;
-type UPDATER_VALUE_INPUT_TYPE = AdcChannelDriver<'static, Gpio34, &'static AdcDriver<'static, ADC1>>;
+type UPDATER_FIELD_INPUT_TYPE =
+    AdcChannelDriver<'static, Gpio39, &'static AdcDriver<'static, ADC1>>;
+type UPDATER_VALUE_INPUT_TYPE =
+    AdcChannelDriver<'static, Gpio34, &'static AdcDriver<'static, ADC1>>;
 type CAN_TYPE = CanDriver<'static>;
 type LCD_TYPE = Lcd<'static>;
 
@@ -52,7 +54,6 @@ pub fn setup() {
     // Take peripherals
     let peripherals = Peripherals::take().expect("Failed to take peripherals");
 
-    
     // Configure CAN bus
     let filter = can::config::Filter::Standard {
         filter: CFG_MESG_ID.as_raw(),
@@ -67,27 +68,37 @@ pub fn setup() {
     let mut can = can::CanDriver::new(peripherals.can, can_tx, can_rx, &config).unwrap();
 
     //Configure Pin Drivers
-    let adc_driver =  AdcDriver::new(peripherals.adc1).unwrap();
+    let adc_driver = AdcDriver::new(peripherals.adc1).unwrap();
     let adc_driver_ref: &'static AdcDriver<ADC1> = Box::leak(Box::new(adc_driver));
-
 
     let ti_config = AdcChannelConfig {
         attenuation: DB_11,
         ..Default::default()
     };
-    let ti_adc = AdcChannelDriver::new(adc_driver_ref, peripherals.pins.gpio36, &ti_config).unwrap();
+    let ti_adc =
+        AdcChannelDriver::new(adc_driver_ref, peripherals.pins.gpio36, &ti_config).unwrap();
 
     let updater_field_config = AdcChannelConfig {
         attenuation: DB_11,
         ..Default::default()
     };
-    let updater_field_adc = AdcChannelDriver::new(adc_driver_ref, peripherals.pins.gpio39, &updater_field_config).unwrap();
+    let updater_field_adc = AdcChannelDriver::new(
+        adc_driver_ref,
+        peripherals.pins.gpio39,
+        &updater_field_config,
+    )
+    .unwrap();
 
     let updater_value_config = AdcChannelConfig {
         attenuation: DB_11,
         ..Default::default()
     };
-    let updater_value_adc = AdcChannelDriver::new(adc_driver_ref, peripherals.pins.gpio34, &updater_value_config).unwrap();
+    let updater_value_adc = AdcChannelDriver::new(
+        adc_driver_ref,
+        peripherals.pins.gpio34,
+        &updater_value_config,
+    )
+    .unwrap();
 
     // Configure L2C Driver
     let i2c = I2cDriver::new(
@@ -108,16 +119,17 @@ pub fn setup() {
         local_can_driver.replace(can);
 
         let local_ti_driver: &mut Option<_> = &mut *THROTTLE_INPUT.borrow_ref_mut(cs);
-        local_ti_driver.replace(ti_adc);       
-         let local_updater_field_driver: &mut Option<_> = &mut *UPDATER_FIELD_INPUT.borrow_ref_mut(cs);
-         local_updater_field_driver.replace(updater_field_adc);        
-        let local_updater_value_driver: &mut Option<_> = &mut *UPDATER_VALUE_INPUT.borrow_ref_mut(cs);
+        local_ti_driver.replace(ti_adc);
+        let local_updater_field_driver: &mut Option<_> =
+            &mut *UPDATER_FIELD_INPUT.borrow_ref_mut(cs);
+        local_updater_field_driver.replace(updater_field_adc);
+        let local_updater_value_driver: &mut Option<_> =
+            &mut *UPDATER_VALUE_INPUT.borrow_ref_mut(cs);
         local_updater_value_driver.replace(updater_value_adc);
 
         let local_lcd: &mut Option<_> = &mut *LCD.borrow_ref_mut(cs);
         local_lcd.replace(lcd);
     });
-
 }
 
 pub fn broadcast_message(msg: Message) {
@@ -176,7 +188,8 @@ pub fn get_updater_field_value() -> Percentage {
     critical_section::with(|cs| {
         // `RefCell::borrow` and `RefCell::borrow_mut` are renamed to
         // `borrow_ref` and `borrow_ref_mut` to avoid name collisions
-        let local_updater_field: &mut Option<UPDATER_FIELD_INPUT_TYPE> = &mut *UPDATER_FIELD_INPUT.borrow_ref_mut(cs);
+        let local_updater_field: &mut Option<UPDATER_FIELD_INPUT_TYPE> =
+            &mut *UPDATER_FIELD_INPUT.borrow_ref_mut(cs);
         if let Some(updater_field) = local_updater_field {
             Percentage::from_fractional(updater_field.read().unwrap() as f32 / u16::MAX as f32)
         } else {
@@ -189,7 +202,8 @@ pub fn get_updater_val_value() -> Percentage {
     critical_section::with(|cs| {
         // `RefCell::borrow` and `RefCell::borrow_mut` are renamed to
         // `borrow_ref` and `borrow_ref_mut` to avoid name collisions
-        let local_updater_val: &mut Option<UPDATER_VALUE_INPUT_TYPE> = &mut *UPDATER_VALUE_INPUT.borrow_ref_mut(cs);
+        let local_updater_val: &mut Option<UPDATER_VALUE_INPUT_TYPE> =
+            &mut *UPDATER_VALUE_INPUT.borrow_ref_mut(cs);
         if let Some(updater_val) = local_updater_val {
             Percentage::from_fractional(updater_val.read().unwrap() as f32 / u16::MAX as f32)
         } else {

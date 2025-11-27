@@ -1,4 +1,6 @@
 use base64::Engine;
+use eframe::egui::{self, Color32};
+use egui_async::Bind;
 use embedded_can::StandardId;
 use std::{
     sync::OnceLock,
@@ -8,13 +10,13 @@ use tokio::{io, sync::MutexGuard, task};
 
 use futures::{FutureExt, StreamExt};
 use shared::{
-    config::config::Config, controllers::{fcu::FcuController, mcu::McuController}, messages::messages::Message, operations::config_updater::ConfigUpdateState, utils::{percentage::Percentage, time::Timestamp}
+    config::config::Config, controllers::{fcu::{FcuController, FcuState}, mcu::McuController}, messages::messages::Message, operations::config_updater::ConfigUpdateState, utils::{percentage::Percentage, time::Timestamp}
 };
 use tokio_util::codec::{FramedRead, LinesCodec}; // For the .next() method on FramedRead
 
 use tokio::sync::Mutex;
 
-use crate::wrappers::core::{broadcast_message, get_next_message, get_req_throttle, get_timestamp, local_sleep};
+use crate::wrappers::core::{CurrentCarState, broadcast_message, get_car_state, get_next_message, get_req_throttle, get_timestamp, local_sleep, update_req_throttle};
 
 
 pub struct LocalFcuRunner {
@@ -97,3 +99,27 @@ impl LocalFcuRunner {
 
 }
 
+
+pub struct FcuUiComponent {
+    throttle_req: f32,
+    update_state: Bind<(), ()>,
+
+}
+
+impl Default for FcuUiComponent {
+    fn default() -> Self {
+        FcuUiComponent { throttle_req: Percentage::zero().to_fractional(), update_state: Bind::new(false) }
+    }
+}
+impl FcuUiComponent {
+    pub fn ui(&mut self, ui: &mut egui::Ui, car_state: &CurrentCarState) {
+            ui.add(egui::Slider::new(&mut self.throttle_req, 0.0..=100.0).text("Throttle Req"));
+            ui.add(egui::ProgressBar::new(car_state.throttle.to_ui()).show_percentage().fill(Color32::from_rgb(0, 255, 0)));
+
+        let local_perct = Percentage::from_ui(self.throttle_req);
+        self.update_state.request_every( move || async move {
+            update_req_throttle(local_perct).await;
+            Ok(())
+        }, Duration::from_millis(50));
+    }
+}

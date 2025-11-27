@@ -5,17 +5,15 @@ use egui::mutex::Mutex;
 use egui_async::{Bind, EguiAsyncPlugin};
 use shared::utils::percentage::Percentage;
 
-use crate::wrappers::core::{CurrentCarState, CurrentOutsideState, get_car_state, get_outside_state, get_req_throttle, update_req_throttle};
+use crate::wrappers::{core::{CurrentCarState, CurrentOutsideState, get_car_state, get_outside_state, get_req_throttle, update_req_throttle}, fcu::FcuUiComponent};
 
 struct MyApp {
     /// The Bind struct holds the state of our async operation.
     repeat_updator: Bind<(CurrentCarState, CurrentOutsideState), ()>,
+    fcu_component: FcuUiComponent,
 
     car_state: Option<CurrentCarState>,
     outside_state: Option<CurrentOutsideState>,
-    // state
-
-    throttle_req: f32,
 }
 
 impl Default for MyApp {
@@ -26,7 +24,7 @@ impl Default for MyApp {
             // If set to true, this will retain data even as the
             // element goes undrawn.
             repeat_updator: Bind::new(false), // Same as Bind::default()
-            throttle_req: Percentage::zero().to_fractional(),
+            fcu_component: FcuUiComponent::default(),
             car_state: None,
             outside_state: None,
         }
@@ -39,15 +37,13 @@ impl eframe::App for MyApp {
         // It's idempotent and cheap to call on every frame.
         ctx.plugin_or_default::<EguiAsyncPlugin>(); // <-- REQUIRED
 
+        ctx.set_zoom_factor(5.0);
+
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Async Data Demo");
             ui.add_space(10.0);
 
-            // Request if `data_bind` is None and idle
-            // Otherwise, just read it
-            let local_perct = Percentage::from_fractional(self.throttle_req/100.0);
             self.repeat_updator.request_every( move || async move {
-                update_req_throttle(local_perct).await;
                 let car_state = get_car_state().await;
                 let outside_state = get_outside_state().await;
                 Ok((car_state, outside_state))
@@ -55,14 +51,15 @@ impl eframe::App for MyApp {
 
             if let Some(Ok((car_state, outside_state))) = self.repeat_updator.read() {
                 {
-                    let slider_resp = ui.add(egui::Slider::new(&mut self.throttle_req, 0.0..=100.0).text("Throttle Req"));
-                    ui.label(format!("We got user throttle req: {:?} and ecu throttle req: {:?}", outside_state.throttle.to_int(), car_state.throttle.to_int()));
+                    self.fcu_component.ui(ui, car_state);
                 }
             } else {
                 ui.label("Getting state...");
                 ui.spinner();
             }
         });
+
+        
     }
 }
 

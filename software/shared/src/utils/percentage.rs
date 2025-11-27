@@ -92,6 +92,17 @@ impl Div<Percentage> for Percentage {
 }
 
 impl Percentage {
+    pub const fn from_ui(value: f32) -> Self {
+        let mut us = Self {
+            raw_val: value / 100.0,
+        };
+        us.clamp();
+        us
+    }
+    pub fn to_ui(&self) -> f32 {
+        self.raw_val
+    }
+
     pub const fn from_fractional(value: f32) -> Self {
         let mut us = Self { raw_val: value };
         us.clamp();
@@ -112,10 +123,10 @@ impl Percentage {
         (self.raw_val * 100.0).round() as u8
     }
 
-    pub fn full() -> Self {
+    pub const fn full() -> Self {
         return Percentage { raw_val: 1.0 };
     }
-    pub fn zero() -> Self {
+    pub const fn zero() -> Self {
         return Percentage { raw_val: 0.0 };
     }
     pub const fn clamp(mut self) {

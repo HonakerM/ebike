@@ -1,7 +1,10 @@
-use crate::{controllers::mcu::McuConfig, subsystems::mcu::engine::EngineConfig};
+use crate::{
+    controllers::fcu::FcuConfig, controllers::mcu::McuConfig, subsystems::mcu::engine::EngineConfig,
+};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Config {
+    pub fcu: FcuConfig,
     pub mcu: McuConfig,
     pub engine: EngineConfig,
 }

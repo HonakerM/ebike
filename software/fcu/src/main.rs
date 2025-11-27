@@ -34,17 +34,23 @@ fn main() {
     setup();
 
     let mut controller = FcuWrapperController::new();
+    let fcu_config = controller.get_config();
 
-    let cur_time = Instant::now();
+    let mut cur_time = Instant::now();
     loop {
-        let elapsed_time = cur_time.elapsed();
+        // get time since last main run
+        let now = Instant::now();
+        let elapsed_time = cur_time - now;
+        cur_time = now;
+
         let (read_msgs, broad_ctl, broad_upd, refresh_disp) = {
             let mils = elapsed_time.as_millis();
+
             (
-                mils % 250 == 0,
-                mils % 15 == 0,
-                mils % 500 == 0,
-                mils % 100 == 0,
+                mils > (fcu_config.message_poll.as_millis() as u128),
+                mils > (fcu_config.ctl_poll.as_millis() as u128),
+                mils > (fcu_config.update_poll.as_millis() as u128),
+                mils > (fcu_config.display_poll.as_millis() as u128),
             )
         };
 

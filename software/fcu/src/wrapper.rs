@@ -18,6 +18,7 @@ use esp_idf_svc::sys::link_patches;
 use esp_idf_sys as _;
 use log::info;
 use shared::config::config::Config;
+use shared::controllers::fcu::FcuConfig;
 use shared::controllers::fcu::FcuController;
 use shared::messages::messages::Message;
 use shared::operations::config_updater::{ConfigUpdateState, ConfigUpdater};
@@ -27,7 +28,7 @@ use std::thread;
 use std::time::Instant;
 
 pub struct FcuWrapperController {
-    controller: FcuController,
+    pub controller: FcuController,
 }
 
 impl FcuWrapperController {
@@ -36,6 +37,10 @@ impl FcuWrapperController {
         let controller = FcuController::new(config);
 
         Self { controller }
+    }
+
+    pub fn get_config(&self) -> FcuConfig {
+        self.controller.config.fcu
     }
 
     pub fn process_messages(&mut self) {
@@ -67,7 +72,7 @@ impl FcuWrapperController {
         // Read the raw values
         //let tc_val = get_ti_value();
         // let break_val = get_ti_value();
-        let field_per= get_updater_field_value();
+        let field_per = get_updater_field_value();
         let val_per = get_updater_val_value();
         let config_state = ConfigUpdateState::new(field_per, val_per);
         if let Some(msg) = self.controller.run_config_update(config_state) {

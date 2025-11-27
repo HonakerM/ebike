@@ -95,8 +95,8 @@ fn main() {
     });    
     local::ui::run().unwrap();
 
-
-    /*
+    std::process::exit(0);
+        /*
     let messages = vec![
         Message::ControlReqMessage(ControlReqMessage {
             throttle_req: Percentage::from_fractional(0.5),
