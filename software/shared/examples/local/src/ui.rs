@@ -5,14 +5,23 @@ use egui::mutex::Mutex;
 use egui_async::{Bind, EguiAsyncPlugin};
 use shared::utils::percentage::Percentage;
 
-use crate::wrappers::{core::{CurrentCarState, CurrentOutsideState, get_car_state, get_outside_state, get_req_throttle, update_req_throttle}, fcu::FcuUiComponent};
-
+use crate::simulation::car::CarState;
+use crate::{
+    simulation::car,
+    wrappers::{
+        core::{
+            CurrentOutsideState, get_car_state, get_outside_state, get_req_throttle,
+            update_req_throttle,
+        },
+        fcu::FcuUiComponent,
+    },
+};
 struct MyApp {
     /// The Bind struct holds the state of our async operation.
-    repeat_updator: Bind<(CurrentCarState, CurrentOutsideState), ()>,
+    repeat_updator: Bind<(CarState, CurrentOutsideState), ()>,
     fcu_component: FcuUiComponent,
 
-    car_state: Option<CurrentCarState>,
+    car_state: Option<CarState>,
     outside_state: Option<CurrentOutsideState>,
 }
 
@@ -40,16 +49,21 @@ impl eframe::App for MyApp {
         ctx.set_zoom_factor(5.0);
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Async Data Demo");
+            ui.heading("Bike Control Demo");
             ui.add_space(10.0);
 
-            self.repeat_updator.request_every( move || async move {
-                let car_state = get_car_state().await;
-                let outside_state = get_outside_state().await;
-                Ok((car_state, outside_state))
-            }, Duration::from_millis(50));
+            self.repeat_updator.request_every(
+                move || async move {
+                    let car_state = get_car_state().await;
+                    let outside_state = get_outside_state().await;
+                    Ok((car_state, outside_state))
+                },
+                Duration::from_millis(50),
+            );
 
             if let Some(Ok((car_state, outside_state))) = self.repeat_updator.read() {
+                self.car_state = Some(car_state.clone());
+                self.outside_state = Some(outside_state.clone());
                 {
                     self.fcu_component.ui(ui, car_state);
                 }
@@ -58,8 +72,6 @@ impl eframe::App for MyApp {
                 ui.spinner();
             }
         });
-
-        
     }
 }
 

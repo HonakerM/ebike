@@ -8,9 +8,7 @@ use tokio::{io, sync::MutexGuard, task};
 
 use futures::{FutureExt, StreamExt};
 use shared::{
-    config::config::Config,
-    controllers::mcu::McuController,
-    messages::messages::Message,
+    config::config::Config, controllers::mcu::McuController, messages::messages::Message,
     utils::time::Timestamp,
 };
 use tokio_util::codec::{FramedRead, LinesCodec}; // For the .next() method on FramedRead
@@ -18,7 +16,6 @@ use tokio_util::codec::{FramedRead, LinesCodec}; // For the .next() method on Fr
 use tokio::sync::Mutex;
 
 use crate::wrappers::core::{broadcast_message, get_next_message, get_timestamp, local_sleep};
-
 
 pub struct LocalMcuRunner {
     controller: Mutex<McuController>,
@@ -38,7 +35,17 @@ impl LocalMcuRunner {
                 let msg = controller.broadcast_ecu();
                 (controller.config.mcu.ecu_poll, msg)
             };
-            //eprintln!("{}", Into::<String>::into(msg));
+            (broadcast_message(msg)).await;
+            local_sleep(sleep_time).await
+        }
+    }
+    pub async fn broadcast_config(&self) {
+        loop {
+            let (sleep_time, msg) = {
+                let controller = self.controller.lock().await;
+                let msg = controller.broadcast_config();
+                (controller.config.mcu.config_poll, msg)
+            };
             (broadcast_message(msg)).await;
             local_sleep(sleep_time).await
         }
@@ -66,14 +73,13 @@ impl LocalMcuRunner {
 
     pub async fn run(config: Config) {
         let runner = LocalMcuRunner::new(config);
-    
+
         // Spawn a new task
-        let (_, _, _) = tokio::join!(
+        let (_, _, _, _) = tokio::join!(
             runner.run_engine_subsystem(),
             runner.broadcast_ecu(),
             runner.process_messages(),
+            runner.broadcast_config(),
         );
     }
-
 }
-

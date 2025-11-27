@@ -1,5 +1,6 @@
 use local::wrappers::core::get_next_message;
 use serde::ser::SerializeStruct;
+use serde::{Deserialize, Serialize, Serializer};
 use shared::messages::messages::common::Message;
 use shared::messages::messages::control_req::ControlReqMessage;
 use shared::utils::percentage::Percentage;
@@ -9,9 +10,8 @@ use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::{Duration, UNIX_EPOCH};
 use std::time::SystemTime;
-use serde::{Deserialize, Serialize, Serializer};
+use std::time::{Duration, UNIX_EPOCH};
 
 struct MessageStat {
     message: Message,
@@ -19,7 +19,7 @@ struct MessageStat {
 }
 
 impl MessageStat {
-    pub fn new(msg: Message) ->Self{
+    pub fn new(msg: Message) -> Self {
         MessageStat {
             message: msg,
             timestamp: std::time::SystemTime::now(),
@@ -35,9 +35,12 @@ impl Serialize for MessageStat {
         let mut state = serializer.serialize_struct("MessageStat", 2)?;
 
         // Serialize individual fields with custom logic
-        let some_val = self.timestamp.duration_since(UNIX_EPOCH).expect("time is bad");
+        let some_val = self
+            .timestamp
+            .duration_since(UNIX_EPOCH)
+            .expect("time is bad");
 
-        state.serialize_field("message", &format!("{:?}",self.message))?;
+        state.serialize_field("message", &format!("{:?}", self.message))?;
         state.serialize_field("timestamp", &some_val)?; // Example: Serialize as string
 
         // End the serialization of the struct
@@ -66,18 +69,15 @@ fn main() {
             .build()
             .unwrap()
             .block_on(write_can_to_log())
-    }); 
+    });
     // start thread for thread updater
     thread::spawn(|| {
         tokio::runtime::Builder::new_current_thread()
             .build()
             .unwrap()
             .block_on(local::wrappers::core::state_updater())
-    }); 
-    
+    });
 
-
-    
     // spawn threads for MCU/FCU
     thread::spawn(move || {
         tokio::runtime::Builder::new_current_thread()
@@ -85,18 +85,18 @@ fn main() {
             .build()
             .unwrap()
             .block_on(local::wrappers::LocalMcuRunner::run(config))
-    });   
+    });
     thread::spawn(move || {
         tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
             .unwrap()
             .block_on(local::wrappers::LocalFcuRunner::run(config))
-    });    
+    });
     local::ui::run().unwrap();
 
     std::process::exit(0);
-        /*
+    /*
     let messages = vec![
         Message::ControlReqMessage(ControlReqMessage {
             throttle_req: Percentage::from_fractional(0.5),
@@ -119,5 +119,5 @@ fn main() {
         }
         thread::sleep(Duration::from_secs(5));
     } */
-   loop {}
+    loop {}
 }
