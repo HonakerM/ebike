@@ -1,4 +1,7 @@
+use std::time::Duration;
+
 use eframe::egui;
+use egui::mutex::Mutex;
 use egui_async::{Bind, EguiAsyncPlugin};
 use shared::utils::percentage::Percentage;
 
@@ -6,11 +9,12 @@ use crate::wrappers::core::{CurrentCarState, CurrentOutsideState, get_car_state,
 
 struct MyApp {
     /// The Bind struct holds the state of our async operation.
-    car_state_bind: Bind<CurrentCarState, ()>,
-    outside_state_bind: Bind<CurrentOutsideState, ()>,
-    update_state_bind: Bind<(), ()>,
+    repeat_updator: Bind<(CurrentCarState, CurrentOutsideState), ()>,
 
+    car_state: Option<CurrentCarState>,
+    outside_state: Option<CurrentOutsideState>,
     // state
+
     throttle_req: f32,
 }
 
@@ -21,9 +25,10 @@ impl Default for MyApp {
             // if it's not visible for a frame.
             // If set to true, this will retain data even as the
             // element goes undrawn.
-            car_state_bind: Bind::new(false), // Same as Bind::default()
-            outside_state_bind: Bind::new(false), // Same as Bind::default()
+            repeat_updator: Bind::new(false), // Same as Bind::default()
             throttle_req: Percentage::zero().to_fractional(),
+            car_state: None,
+            outside_state: None,
         }
     }
 }
@@ -40,26 +45,18 @@ impl eframe::App for MyApp {
 
             // Request if `data_bind` is None and idle
             // Otherwise, just read it
-           if let Some(res) = self.car_state_bind.read_or_request(|| async {
+            let local_perct = Percentage::from_fractional(self.throttle_req/100.0);
+            self.repeat_updator.request_every( move || async move {
+                update_req_throttle(local_perct).await;
                 let car_state = get_car_state().await;
-                Ok(car_state)
-            }) {
-                let car_state = res.unwrap();
-                if let Some(res) = self.outside_state_bind.read_or_request(|| async {
-                    let current_outside_state = get_outside_state().await;
-                    Ok(current_outside_state)
-                }) {
-                    let current_outside_state = res.unwrap();
+                let outside_state = get_outside_state().await;
+                Ok((car_state, outside_state))
+            }, Duration::from_millis(50));
 
+            if let Some(Ok((car_state, outside_state))) = self.repeat_updator.read() {
+                {
                     let slider_resp = ui.add(egui::Slider::new(&mut self.throttle_req, 0.0..=100.0).text("Throttle Req"));
-                    if slider_resp.changed() {
-                        self.update_state_bind.read_or_request(|| async { 
-                            update_req_throttle(Percentage::from_fractional(self.throttle_req/100.0)).await;
-                            Ok(())
-                        });
-                    }
-                    ui.label(format!("We got user throttle req: {:?} and ecu throttle req: {:?}", current_outside_state.throttle, car_state.throttle));
-
+                    ui.label(format!("We got user throttle req: {:?} and ecu throttle req: {:?}", outside_state.throttle.to_int(), car_state.throttle.to_int()));
                 }
             } else {
                 ui.label("Getting state...");

@@ -14,7 +14,7 @@ use tokio_util::codec::{FramedRead, LinesCodec}; // For the .next() method on Fr
 
 use tokio::sync::Mutex;
 
-use crate::wrappers::core::{broadcast_message, get_next_message, get_timestamp, local_sleep};
+use crate::wrappers::core::{broadcast_message, get_next_message, get_req_throttle, get_timestamp, local_sleep};
 
 
 pub struct LocalFcuRunner {
@@ -34,9 +34,8 @@ impl LocalFcuRunner {
                 let mut controller = self.controller.lock().await;
 
                 // get tc/break value:
-                let tc_val = Percentage::zero();
+                let tc_val = get_req_throttle().await;
                 let break_val = Percentage::zero();
-
 
                 let msg = controller.broadcast_ctl(tc_val, break_val);
                 (controller.config.fcu.ctl_poll, msg)
