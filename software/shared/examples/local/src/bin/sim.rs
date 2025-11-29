@@ -1,5 +1,7 @@
 use nalgebra::vector;
 use rapier2d::prelude::*;
+use std::fs::File;
+use std::io::Write;
 
 fn main() {
     // ----------------------
@@ -30,26 +32,22 @@ fn main() {
     let wheel_radius: f32 = 0.35;
     let wheel_mass: f32 = 6.0;
     let chassis_mass: f32 = 80.0;
-    let weight_fraction_on_wheel: f32 = 0.5;
 
-    let motor_torque_command: f32 = 50.0;
-    let motor_max_torque: f32 = 80.0;
-    let drivetrain_rotational_damping: f32 = 15.0;
+    // Motor parameters
+    let motor_torque: f32 = 40.0; // N·m
 
-    let tire_k: f32 = 1500.0;
-    let tire_saturation_a: f32 = 0.05;
-
+    // Tire slip model parameters - much gentler
+    let slip_stiffness: f32 = 100.0; // N per unit slip ratio
+    
+    // Friction limit
     let mu: f32 = 0.9;
     let g = 9.81_f32;
-    let normal_force = (chassis_mass + wheel_mass) * g * weight_fraction_on_wheel;
-    let tire_f_max = mu * normal_force;
+    let weight_per_wheel = (chassis_mass + wheel_mass) * g / 2.0;
+    let max_tire_force = mu * weight_per_wheel;
 
-    let rolling_resistance: f32 = 12.0;
-    let aero_c1: f32 = 2.0;
-    let aero_c2: f32 = 0.25;
-
-    let max_omega: f32 = 100.0;
-    let v_eps: f32 = 0.5;
+    // Drag coefficients
+    let rolling_resistance: f32 = 10.0; // N
+    let aero_drag: f32 = 0.3; // N/(m/s)^2
 
     // ----------------------
     // Ground
@@ -58,7 +56,7 @@ fn main() {
         .translation(vector![0.0, -0.2])
         .build();
     let ground_handle = bodies.insert(ground_rb);
-    let ground_col = ColliderBuilder::cuboid(50.0, 0.2)
+    let ground_col = ColliderBuilder::cuboid(100.0, 0.2)
         .friction(1.0)
         .restitution(0.0)
         .build();
@@ -67,136 +65,135 @@ fn main() {
     // ----------------------
     // Chassis
     // ----------------------
-    let chassis_start_y = 0.7;
+    let chassis_y = wheel_radius + 0.15; // Bottom of chassis just above wheel tops
     let chassis_rb = RigidBodyBuilder::dynamic()
-        .translation(vector![0.0, chassis_start_y])
-        .linear_damping(1.0)
+        .translation(vector![0.0, chassis_y])
+        .linear_damping(0.05)
+        .angular_damping(1.0)
         .build();
     let chassis_handle = bodies.insert(chassis_rb);
 
-    let chassis_hw = 0.6_f32;
-    let chassis_hh = 0.2_f32;
-    let chassis_density = chassis_mass / (4.0 * chassis_hw * chassis_hh);
-    let chassis_col = ColliderBuilder::cuboid(chassis_hw, chassis_hh)
-        .density(chassis_density)
-        .friction(0.5)
-        .restitution(0.0)
+    let chassis_col = ColliderBuilder::cuboid(0.8, 0.15)
+        .density(chassis_mass / (1.6 * 0.3))
         .build();
     colliders.insert_with_parent(chassis_col, chassis_handle, &mut bodies);
 
     // ----------------------
-    // Wheel
+    // Rear Wheel (driven)
     // ----------------------
-    let wheel_start_pos = vector![0.4, wheel_radius];
-    let wheel_rb = RigidBodyBuilder::dynamic()
-        .translation(wheel_start_pos)
-        .angvel(0.0)
-        .angular_damping(2.0)
+    let rear_x = 0.5;
+    let rear_pos = vector![rear_x, wheel_radius];
+    let rear_rb = RigidBodyBuilder::dynamic()
+        .translation(rear_pos)
+        .angular_damping(0.1)
         .build();
-    let wheel_handle = bodies.insert(wheel_rb);
+    let rear_handle = bodies.insert(rear_rb);
 
-    let wheel_area = std::f32::consts::PI * wheel_radius.powi(2);
-    let wheel_density = wheel_mass / wheel_area;
-    let wheel_col = ColliderBuilder::ball(wheel_radius)
+    let wheel_density = wheel_mass / (std::f32::consts::PI * wheel_radius.powi(2));
+    let rear_col = ColliderBuilder::ball(wheel_radius)
         .density(wheel_density)
         .friction(mu)
-        .restitution(0.1)
+        .restitution(0.0)
         .build();
-    colliders.insert_with_parent(wheel_col, wheel_handle, &mut bodies);
+    colliders.insert_with_parent(rear_col, rear_handle, &mut bodies);
 
     // ----------------------
-    // Revolute joint
+    // Front Wheel (free)
     // ----------------------
-    let axle_world_pos = wheel_start_pos;
-    let chassis_local = bodies[chassis_handle].position().inverse() 
-        * Isometry::new(axle_world_pos, 0.0);
-    let wheel_local = bodies[wheel_handle].position().inverse() 
-        * Isometry::new(axle_world_pos, 0.0);
-
-    let joint = RevoluteJointBuilder::new()
-        .local_anchor1(chassis_local.translation.vector.into())
-        .local_anchor2(wheel_local.translation.vector.into())
+    let front_x = -0.5;
+    let front_pos = vector![front_x, wheel_radius];
+    let front_rb = RigidBodyBuilder::dynamic()
+        .translation(front_pos)
+        .angular_damping(0.1)
         .build();
-    joints.insert(chassis_handle, wheel_handle, joint, true);
+    let front_handle = bodies.insert(front_rb);
+
+    let front_col = ColliderBuilder::ball(wheel_radius)
+        .density(wheel_density)
+        .friction(mu)
+        .restitution(0.0)
+        .build();
+    colliders.insert_with_parent(front_col, front_handle, &mut bodies);
+
+    // ----------------------
+    // Joints - use actual world positions
+    // ----------------------
+    // Rear joint: chassis at (0, chassis_y), rear wheel at (rear_x, wheel_radius)
+    // Joint position is at wheel center
+    let rear_joint = RevoluteJointBuilder::new()
+        .local_anchor1(vector![rear_x, wheel_radius - chassis_y].into()) // In chassis frame
+        .local_anchor2(vector![0.0, 0.0].into()) // At wheel center
+        .build();
+    joints.insert(chassis_handle, rear_handle, rear_joint, true);
+
+    // Front joint: chassis at (0, chassis_y), front wheel at (front_x, wheel_radius)
+    let front_joint = RevoluteJointBuilder::new()
+        .local_anchor1(vector![front_x, wheel_radius - chassis_y].into()) // In chassis frame
+        .local_anchor2(vector![0.0, 0.0].into()) // At wheel center
+        .build();
+    joints.insert(chassis_handle, front_handle, front_joint, true);
+
+    // ----------------------
+    // Data logging
+    // ----------------------
+    let mut log_file = File::create("simulation.csv").unwrap();
+    writeln!(log_file, "time,v_chassis,omega_rear,omega_front,slip,f_tire,motor_torque,tire_torque").unwrap();
 
     // ----------------------
     // Simulation loop
     // ----------------------
-    let total_steps = 3_000;
+    let total_steps = 6_000;
+    let dt = integration_params.dt;
     
     for step in 0..total_steps {
-        // Cap omega at start of step
-        {
-            let mut wheel_rb = bodies.get_mut(wheel_handle).unwrap();
-            let omega = wheel_rb.angvel();
-            if !omega.is_finite() || omega.abs() > max_omega {
-                wheel_rb.set_angvel(omega.signum() * max_omega.min(omega.abs()), true);
-            }
-        }
+        let time = step as f32 * dt;
 
         // Read state
-        let (v_chassis, wheel_omega) = {
-            let chassis_rb = bodies.get(chassis_handle).unwrap();
-            let wheel_rb = bodies.get(wheel_handle).unwrap();
-            (chassis_rb.linvel().x, wheel_rb.angvel())
-        };
+        let v_chassis = bodies.get(chassis_handle).unwrap().linvel().x;
+        let omega_rear = bodies.get(rear_handle).unwrap().angvel();
+        let omega_front = bodies.get(front_handle).unwrap().angvel();
 
-        // Safety check
-        if !v_chassis.is_finite() || !wheel_omega.is_finite() {
-            println!("NaN detected at step {}, resetting...", step);
-            let mut chassis_rb = bodies.get_mut(chassis_handle).unwrap();
-            chassis_rb.set_linvel(vector![0.0, 0.0], true);
-            chassis_rb.set_angvel(0.0, true);
-            let mut wheel_rb = bodies.get_mut(wheel_handle).unwrap();
-            wheel_rb.set_linvel(vector![0.0, 0.0], true);
-            wheel_rb.set_angvel(0.0, true);
-            continue;
-        }
+        // Calculate slip ratio for rear wheel
+        // slip = (wheel_surface_speed - vehicle_speed) / |vehicle_speed|
+        let wheel_surface_speed = omega_rear * wheel_radius;
+        let v_ref = v_chassis.abs().max(0.1); // Avoid division by small numbers
+        let slip = (wheel_surface_speed - v_chassis) / v_ref;
+        
+        // Tire force from slip (linear with saturation)
+        let tire_force_desired = slip_stiffness * slip;
+        let tire_force = tire_force_desired.clamp(-max_tire_force, max_tire_force);
 
-        // Slip calculation
-        let v_wheel_surface = wheel_omega * wheel_radius;
-        let v_ref = v_chassis.abs().max(v_eps);
-        let slip = (v_wheel_surface - v_chassis) / v_ref;
-        let slip_clamped = slip.clamp(-50.0, 50.0);
+        // Drag forces
+        let drag = -rolling_resistance * v_chassis.signum() 
+                   - aero_drag * v_chassis * v_chassis.abs();
 
-        // Tire force at contact patch (ground pushing on wheel)
-        let f_tire_raw = tire_k * slip_clamped / (1.0 + tire_saturation_a * slip_clamped.abs());
-        let f_tire = f_tire_raw.clamp(-tire_f_max, tire_f_max);
-
-        // Drag on chassis (resists chassis motion)
-        let drag = -v_chassis.signum() * rolling_resistance
-                   - aero_c1 * v_chassis
-                   - aero_c2 * v_chassis * v_chassis.abs();
-
-        // Apply drag directly to chassis
+        // Apply forces to chassis
         {
             let mut chassis_rb = bodies.get_mut(chassis_handle).unwrap();
-            chassis_rb.add_force(vector![drag, 0.0], true);
+            chassis_rb.add_force(vector![tire_force + drag, 0.0], true);
         }
 
-        // Apply all torques to wheel
+        // Apply torques to rear wheel
+        let tire_torque = -tire_force * wheel_radius; // Tire force opposes wheel spin
         {
-            let mut wheel_rb = bodies.get_mut(wheel_handle).unwrap();
-            
-            // Motor torque (drives wheel)
-            let motor_tau = motor_torque_command.clamp(-motor_max_torque, motor_max_torque);
-            
-            // Drivetrain damping
-            let damping_tau = -drivetrain_rotational_damping * wheel_omega;
-            
-            // Tire force creates torque at contact patch (radius below axle)
-            // If tire pushes forward on wheel (+f_tire), it creates +torque (accelerates rotation)
-            let tire_torque = f_tire * wheel_radius;
-            
-            let total_torque = motor_tau + damping_tau + tire_torque;
-            
-            wheel_rb.add_torque(total_torque, true);
+            let mut rear_rb = bodies.get_mut(rear_handle).unwrap();
+            rear_rb.add_torque(motor_torque + tire_torque, true);
         }
 
-        if step % 120 == 0 {
+        // Log data
+        if step % 10 == 0 {
+            writeln!(
+                log_file,
+                "{:.3},{:.3},{:.3},{:.3},{:.3},{:.3},{:.3},{:.3}",
+                time, v_chassis, omega_rear, omega_front, slip, tire_force, motor_torque, tire_torque
+            ).unwrap();
+        }
+
+        // Console output
+        if step % 60 == 0 {
             println!(
-                "Step {} | slip={:.2} | v={:.2} m/s | ω={:.1} rad/s | F_tire={:.1} N",
-                step, slip_clamped, v_chassis, wheel_omega, f_tire
+                "t={:.1}s | v={:.2} m/s | slip={:.3} | ω_r={:.1} | ω_f={:.1} | d_w_f={:.1} | F_tire={:.1} N",
+                time, v_chassis, slip, omega_rear,omega_front,v_chassis/ wheel_radius, tire_force
             );
         }
 
@@ -217,5 +214,36 @@ fn main() {
         );
     }
 
-    println!("Simulation finished.");
+    println!("\nSimulation finished. Data saved to simulation.csv");
+    println!("\nTo visualize, create a Python script with:");
+    println!("---");
+    println!("import pandas as pd");
+    println!("import matplotlib.pyplot as plt");
+    println!("");
+    println!("df = pd.read_csv('simulation.csv')");
+    println!("");
+    println!("fig, axes = plt.subplots(3, 1, figsize=(10, 10))");
+    println!("");
+    println!("axes[0].plot(df['time'], df['v_chassis'], label='Chassis Speed')");
+    println!("axes[0].set_ylabel('Speed (m/s)')");
+    println!("axes[0].legend()");
+    println!("axes[0].grid(True)");
+    println!("");
+    println!("axes[1].plot(df['time'], df['omega_rear'], label='Rear Wheel')");
+    println!("axes[1].plot(df['time'], df['omega_front'], label='Front Wheel')");
+    println!("axes[1].set_ylabel('Angular Velocity (rad/s)')");
+    println!("axes[1].legend()");
+    println!("axes[1].grid(True)");
+    println!("");
+    println!("axes[2].plot(df['time'], df['slip'], label='Slip Ratio')");
+    println!("axes[2].plot(df['time'], df['f_tire']/100, label='Tire Force/100')");
+    println!("axes[2].set_xlabel('Time (s)')");
+    println!("axes[2].set_ylabel('Slip / Force')");
+    println!("axes[2].legend()");
+    println!("axes[2].grid(True)");
+    println!("");
+    println!("plt.tight_layout()");
+    println!("plt.savefig('bike_sim.png', dpi=150)");
+    println!("plt.show()");
+    println!("---");
 }
