@@ -1,3 +1,6 @@
 [submodule "software/lcd_i2c_rs"]
 	path = software/lcd_i2c_rs
 	url = https://github.com/HonakerM/lcd_i2c_rs.git
+[submodule "software/project-chrono"]
+	path = software/project-chrono
+	url = https://github.com/HonakerM/project-chrono-rs.git
