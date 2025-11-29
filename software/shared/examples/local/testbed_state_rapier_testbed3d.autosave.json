@@ -1,0 +1,30 @@
+{
+  "running": "Running",
+  "flags": "SLEEP | DRAW_SURFACES",
+  "selected_example": 0,
+  "selected_backend": 0,
+  "example_settings": {
+    "values": {}
+  },
+  "physx_use_two_friction_directions": true,
+  "camera": {
+    "x": -2.3561945,
+    "y": 0.9561936,
+    "pitch_range": {
+      "start": 0.01,
+      "end": 3.13
+    },
+    "distance": 17.320509,
+    "center": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "rotate_sensitivity": 0.05,
+    "pan_sensitivity": 1.0,
+    "zoom_sensitivity": 0.8,
+    "rotate_button": "Left",
+    "pan_button": "Right",
+    "enabled": true
+  }
+}

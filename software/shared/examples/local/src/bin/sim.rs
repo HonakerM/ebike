@@ -31,7 +31,7 @@ fn main() {
     // ----------------------
     let wheel_radius: f32 = 0.35;
     let wheel_mass: f32 = 6.0;
-    let chassis_mass: f32 = 80.0;
+    let chassis_mass: f32 = 100.0;
 
     // Motor parameters
     let motor_torque: f32 = 40.0; // N·m
@@ -56,7 +56,7 @@ fn main() {
         .translation(vector![0.0, -0.2])
         .build();
     let ground_handle = bodies.insert(ground_rb);
-    let ground_col = ColliderBuilder::cuboid(100.0, 0.2)
+    let ground_col = ColliderBuilder::cuboid(100000.0, 0.2)
         .friction(1.0)
         .restitution(0.0)
         .build();
@@ -65,15 +65,16 @@ fn main() {
     // ----------------------
     // Chassis
     // ----------------------
-    let chassis_y = wheel_radius + 0.15; // Bottom of chassis just above wheel tops
+    let chassis_width = 0.8;
+    let chassis_y = (2.0*wheel_radius) + 0.15; // Bottom of chassis just above wheel tops
     let chassis_rb = RigidBodyBuilder::dynamic()
         .translation(vector![0.0, chassis_y])
-        .linear_damping(0.05)
+        .linear_damping(0.1)
         .angular_damping(1.0)
         .build();
     let chassis_handle = bodies.insert(chassis_rb);
 
-    let chassis_col = ColliderBuilder::cuboid(0.8, 0.15)
+    let chassis_col = ColliderBuilder::cuboid(chassis_width, 0.15)
         .density(chassis_mass / (1.6 * 0.3))
         .build();
     colliders.insert_with_parent(chassis_col, chassis_handle, &mut bodies);
@@ -81,11 +82,11 @@ fn main() {
     // ----------------------
     // Rear Wheel (driven)
     // ----------------------
-    let rear_x = 0.5;
+    let rear_x = -(chassis_width/2.0+0.1);
     let rear_pos = vector![rear_x, wheel_radius];
     let rear_rb = RigidBodyBuilder::dynamic()
         .translation(rear_pos)
-        .angular_damping(0.1)
+        .angular_damping(0.0)
         .build();
     let rear_handle = bodies.insert(rear_rb);
 
@@ -100,11 +101,11 @@ fn main() {
     // ----------------------
     // Front Wheel (free)
     // ----------------------
-    let front_x = -0.5;
+    let front_x = -(rear_x);
     let front_pos = vector![front_x, wheel_radius];
     let front_rb = RigidBodyBuilder::dynamic()
         .translation(front_pos)
-        .angular_damping(0.1)
+        .angular_damping(0.0)
         .build();
     let front_handle = bodies.insert(front_rb);
 
@@ -134,12 +135,6 @@ fn main() {
     joints.insert(chassis_handle, front_handle, front_joint, true);
 
     // ----------------------
-    // Data logging
-    // ----------------------
-    let mut log_file = File::create("simulation.csv").unwrap();
-    writeln!(log_file, "time,v_chassis,omega_rear,omega_front,slip,f_tire,motor_torque,tire_torque").unwrap();
-
-    // ----------------------
     // Simulation loop
     // ----------------------
     let total_steps = 6_000;
@@ -160,8 +155,9 @@ fn main() {
         let slip = (wheel_surface_speed - v_chassis) / v_ref;
         
         // Tire force from slip (linear with saturation)
-        let tire_force_desired = slip_stiffness * slip;
-        let tire_force = tire_force_desired.clamp(-max_tire_force, max_tire_force);
+        //let tire_force_desired = slip_stiffness * slip;
+        //let tire_force = tire_force_desired.clamp(-max_tire_force, max_tire_force);
+        let tire_force = 0.0;
 
         // Drag forces
         let drag = -rolling_resistance * v_chassis.signum() 
@@ -170,27 +166,18 @@ fn main() {
         // Apply forces to chassis
         {
             let mut chassis_rb = bodies.get_mut(chassis_handle).unwrap();
-            chassis_rb.add_force(vector![tire_force + drag, 0.0], true);
+            //chassis_rb.add_force(vector![tire_force + drag, 0.0], true);
         }
 
         // Apply torques to rear wheel
         let tire_torque = -tire_force * wheel_radius; // Tire force opposes wheel spin
         {
             let mut rear_rb = bodies.get_mut(rear_handle).unwrap();
-            rear_rb.add_torque(motor_torque + tire_torque, true);
-        }
-
-        // Log data
-        if step % 10 == 0 {
-            writeln!(
-                log_file,
-                "{:.3},{:.3},{:.3},{:.3},{:.3},{:.3},{:.3},{:.3}",
-                time, v_chassis, omega_rear, omega_front, slip, tire_force, motor_torque, tire_torque
-            ).unwrap();
+            //rear_rb.add_torque(motor_torque + tire_torque, true);
         }
 
         // Console output
-        if step % 60 == 0 {
+        if step % 30 == 0 {
             println!(
                 "t={:.1}s | v={:.2} m/s | slip={:.3} | ω_r={:.1} | ω_f={:.1} | d_w_f={:.1} | F_tire={:.1} N",
                 time, v_chassis, slip, omega_rear,omega_front,v_chassis/ wheel_radius, tire_force
@@ -213,37 +200,4 @@ fn main() {
             &event_handler,
         );
     }
-
-    println!("\nSimulation finished. Data saved to simulation.csv");
-    println!("\nTo visualize, create a Python script with:");
-    println!("---");
-    println!("import pandas as pd");
-    println!("import matplotlib.pyplot as plt");
-    println!("");
-    println!("df = pd.read_csv('simulation.csv')");
-    println!("");
-    println!("fig, axes = plt.subplots(3, 1, figsize=(10, 10))");
-    println!("");
-    println!("axes[0].plot(df['time'], df['v_chassis'], label='Chassis Speed')");
-    println!("axes[0].set_ylabel('Speed (m/s)')");
-    println!("axes[0].legend()");
-    println!("axes[0].grid(True)");
-    println!("");
-    println!("axes[1].plot(df['time'], df['omega_rear'], label='Rear Wheel')");
-    println!("axes[1].plot(df['time'], df['omega_front'], label='Front Wheel')");
-    println!("axes[1].set_ylabel('Angular Velocity (rad/s)')");
-    println!("axes[1].legend()");
-    println!("axes[1].grid(True)");
-    println!("");
-    println!("axes[2].plot(df['time'], df['slip'], label='Slip Ratio')");
-    println!("axes[2].plot(df['time'], df['f_tire']/100, label='Tire Force/100')");
-    println!("axes[2].set_xlabel('Time (s)')");
-    println!("axes[2].set_ylabel('Slip / Force')");
-    println!("axes[2].legend()");
-    println!("axes[2].grid(True)");
-    println!("");
-    println!("plt.tight_layout()");
-    println!("plt.savefig('bike_sim.png', dpi=150)");
-    println!("plt.show()");
-    println!("---");
 }
