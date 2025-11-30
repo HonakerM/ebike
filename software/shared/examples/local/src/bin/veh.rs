@@ -1,3 +1,4 @@
+use nalgebra::Unit;
 use rapier_testbed3d::{KeyCode, Testbed, TestbedApp};
 use rapier3d::prelude::*;
 
@@ -34,9 +35,7 @@ pub fn init_world(testbed: &mut Testbed) {
 
     let wheel_params = [
         vector![0.0, 0.2783, -1.0254],
-        //vector![-0.6874, 0.2783, -0.7802],
         vector![0.0, 0.2783, 1.0254],
-        //vector![-0.64, 0.2783, 1.0254],
     ];
 
     let suspension_height = 0.12;
@@ -134,7 +133,7 @@ pub fn init_world(testbed: &mut Testbed) {
     }
 
     /*
-     * Callback to control the wheels motors.
+     * Callback to control the wheels motors and add self-balancing.
      */
     testbed.add_callback(move |gfx, physics, _, _| {
         let Some(gfx) = gfx else { return };
@@ -206,31 +205,6 @@ pub fn init_world(testbed: &mut Testbed) {
             );
         }
     });
-
-    /*
-     * Create some cubes on the ground.
-     */
-    // let num = 8;
-    // let rad = 0.1;
-    //
-    // let shift = rad * 2.0;
-    // let centerx = shift * (num / 2) as f32;
-    // let centery = rad;
-    //
-    // for j in 0usize..1 {
-    //     for k in 0usize..4 {
-    //         for i in 0..num {
-    //             let x = i as f32 * shift - centerx;
-    //             let y = j as f32 * shift + centery;
-    //             let z = k as f32 * shift + centerx;
-    //
-    //             let rigid_body = RigidBodyBuilder::dynamic().translation(vector![x, y, z]);
-    //             let handle = bodies.insert(rigid_body);
-    //             let collider = ColliderBuilder::cuboid(rad, rad, rad);
-    //             colliders.insert_with_parent(collider, handle, &mut bodies);
-    //         }
-    //     }
-    // }
 
     /*
      * Set up the testbed.
