@@ -6,6 +6,12 @@ pub struct WheelSpeed {
     rpm: u16,
 }
 
+impl WheelSpeed {
+    pub fn zero()->Self{
+        Self{rpm: 0}
+    }
+}
+
 impl From<u16> for WheelSpeed {
     fn from(value: u16) -> Self {
         Self { rpm: value }

@@ -33,14 +33,11 @@ pub fn init_world(testbed: &mut Testbed) {
     const CAR_GROUP: Group = Group::GROUP_1;
 
     let wheel_params = [
-        vector![0.6874, 0.2783, -0.7802],
-        vector![-0.6874, 0.2783, -0.7802],
-        vector![0.64, 0.2783, 1.0254],
-        vector![-0.64, 0.2783, 1.0254],
+        vector![0.0, 0.2783, -1.0254],
+        //vector![-0.6874, 0.2783, -0.7802],
+        vector![0.0, 0.2783, 1.0254],
+        //vector![-0.64, 0.2783, 1.0254],
     ];
-    // TODO: lower center of mass?
-    // let mut center_of_mass = wheel_params.iter().sum().unwrap() / 4.0;
-    // center_of_mass.y = 0.0;
 
     let suspension_height = 0.12;
     let max_steering_angle = 35.0f32.to_radians();
@@ -51,7 +48,7 @@ pub fn init_world(testbed: &mut Testbed) {
 
     let body_position = car_position + body_position_in_car_space;
 
-    let body_co = ColliderBuilder::cuboid(0.65, 0.3, 0.9)
+    let body_co = ColliderBuilder::cuboid(0.2, 0.3, 0.9)
         .density(100.0)
         .collision_groups(InteractionGroups::new(
             CAR_GROUP,
@@ -68,7 +65,7 @@ pub fn init_world(testbed: &mut Testbed) {
     let mut motor_joints = vec![];
 
     for (wheel_id, wheel_pos_in_car_space) in wheel_params.into_iter().enumerate() {
-        let is_front = wheel_id >= 2;
+        let is_front = wheel_id >= 1;
         let wheel_center = car_position + wheel_pos_in_car_space;
 
         let axle_mass_props = MassProperties::from_ball(100.0, wheel_radius);

@@ -8,17 +8,17 @@
   },
   "physx_use_two_friction_directions": true,
   "camera": {
-    "x": -2.3561945,
-    "y": 0.9561936,
+    "x": -1.8811501,
+    "y": 1.11229,
     "pitch_range": {
       "start": 0.01,
       "end": 3.13
     },
-    "distance": 17.320509,
+    "distance": 13.728158,
     "center": [
-      0.0,
-      0.0,
-      0.0
+      -0.012220126,
+      0.34477943,
+      0.27862388
     ],
     "rotate_sensitivity": 0.05,
     "pan_sensitivity": 1.0,
