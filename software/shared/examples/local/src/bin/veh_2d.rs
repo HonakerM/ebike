@@ -35,8 +35,8 @@ pub fn init_world(testbed: &mut Testbed) {
 
     // Two wheel positions in 2D (x, y coordinates)
     let wheel_params = [
-        vector![0.0, 0.2783],  // Left wheel
-        vector![0.0, -0.2783], // Right wheel (shifted in y)
+        vector![-0.5, 0.2783],  // Left wheel
+        vector![0.5, 0.2783], // Right wheel (shifted in y)
     ];
 
     let suspension_height = 0.12;
@@ -49,14 +49,14 @@ pub fn init_world(testbed: &mut Testbed) {
 
     // Car body as a rectangle in 2D
     let body_co = ColliderBuilder::cuboid(0.9, 0.3)
-        .density(100.0)
+        .mass(500.0)
         .collision_groups(InteractionGroups::new(
             CAR_GROUP,
             !CAR_GROUP,
             InteractionTestMode::And,
         ));
     let body_rb = RigidBodyBuilder::dynamic()
-        .position(Isometry::new(body_position.coords, 0.0))
+        .pose(Isometry::new(body_position.coords, 0.0))
         .build();
     let body_handle = bodies.insert(body_rb);
     colliders.insert_with_parent(body_co, body_handle, &mut bodies);
@@ -68,7 +68,7 @@ pub fn init_world(testbed: &mut Testbed) {
 
         let axle_mass_props = MassProperties::from_ball(100.0, wheel_radius);
         let axle_rb = RigidBodyBuilder::dynamic()
-            .position(Isometry::new(wheel_center.coords, 0.0))
+            .pose(Isometry::new(wheel_center.coords, 0.0))
             .additional_mass_properties(axle_mass_props);
         let axle_handle = bodies.insert(axle_rb);
 
@@ -80,7 +80,7 @@ pub fn init_world(testbed: &mut Testbed) {
 
         // Actual wheel collider
         let wheel_co = ColliderBuilder::ball(wheel_radius)
-            .density(100.0)
+            .density(200.0)
             .collision_groups(InteractionGroups::new(
                 CAR_GROUP,
                 !CAR_GROUP,
@@ -107,8 +107,8 @@ pub fn init_world(testbed: &mut Testbed) {
 
         impulse_joints.insert(body_handle, axle_handle, suspension_joint, true);
 
-        // Joint between the axle and the wheel - prismatic in 2D
-        let wheel_joint = PrismaticJointBuilder::new(Vector::x_axis());
+        // Joint between the axle and the wheel - revolute joint for rotation
+        let wheel_joint = RevoluteJointBuilder::new();
         let wheel_joint_handle =
             impulse_joints.insert(axle_handle, wheel_handle, wheel_joint, true);
 
@@ -141,15 +141,15 @@ pub fn init_world(testbed: &mut Testbed) {
 
         let should_wake_up = thrust != 0.0;
 
-        // Apply thrust to both wheels equally
+        // Apply thrust to both wheels equally (rotating them)
         for motor_handle in &motor_joints {
             let motor_joint = physics
                 .impulse_joints
                 .get_mut(*motor_handle, should_wake_up)
                 .unwrap();
             motor_joint.data.set_motor_velocity(
-                JointAxis::LinX,
-                -30.0 * thrust * boost,
+                JointAxis::AngX,
+                30.0 * thrust * boost,
                 1.0e2,
             );
         }
@@ -159,7 +159,7 @@ pub fn init_world(testbed: &mut Testbed) {
      * Set up the testbed.
      */
     testbed.set_world(bodies, colliders, impulse_joints, multibody_joints);
-    testbed.look_at(point![10.0, 10.0], 10.0);
+    testbed.look_at(point![10.0, 10.0], 5.0);
 }
 
 fn main() {
