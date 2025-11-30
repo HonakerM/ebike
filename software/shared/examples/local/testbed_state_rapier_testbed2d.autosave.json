@@ -1,0 +1,22 @@
+{
+  "running": "Running",
+  "flags": "SLEEP | DRAW_SURFACES",
+  "selected_example": 0,
+  "selected_backend": 0,
+  "example_settings": {
+    "values": {}
+  },
+  "physx_use_two_friction_directions": true,
+  "camera": {
+    "zoom": 22.69512,
+    "center": [
+      10.0,
+      10.0,
+      0.0
+    ],
+    "pan_sensitivity": 0.02,
+    "zoom_sensitivity": 0.8,
+    "pan_button": "Right",
+    "enabled": true
+  }
+}

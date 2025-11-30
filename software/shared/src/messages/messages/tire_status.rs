@@ -8,6 +8,9 @@ pub struct TireStatus {
 }
 
 impl TireStatus {
+    pub fn new(wheel: Wheel, ws: WheelSpeed) -> Self {
+        Self{wheel, ws}
+    }
     pub fn to_bytes(&self) -> [u8; 8] {
         let packets = self.ws.to_packets();
         [self.wheel.into(), packets[0], packets[1], 0, 0, 0, 0, 0]
