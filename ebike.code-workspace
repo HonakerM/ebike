@@ -7,11 +7,10 @@
 	"settings": {
 		"rust-analyzer.cargo.allTargets": false,
 		"rust-analyzer.linkedProjects": [
-			"software/fcu/Cargo.toml",
 			"software/ccu/Cargo.toml",
+			"software/fcu/Cargo.toml",
 			"software/shared/Cargo.toml",
-			"software/mcu/Cargo.toml",
-			"software/shared/examples/local/Cargo.toml",
+			"software/mcu/Cargo.toml"
 		]
 	},
 
